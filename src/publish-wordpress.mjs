@@ -12,7 +12,9 @@
  *   WP_USER=mon_login
  *   WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
  *
- * Usage :
+ * Utilisable en CLI ou importé (publishGuideToWordPress) par le tableau de bord.
+ *
+ * Usage CLI :
  *   node src/publish-wordpress.mjs data/guides/mon-guide.json            # crée un brouillon
  *   node src/publish-wordpress.mjs data/guides/mon-guide.json --publish  # publie directement
  *   node src/publish-wordpress.mjs data/guides/mon-guide.json --dry-run  # affiche le payload, n'envoie rien
@@ -28,7 +30,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const CATEGORY_NAME = "Guides d'achat";
 
-function loadDotEnv(path) {
+export function loadDotEnv(path) {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
@@ -36,12 +38,13 @@ function loadDotEnv(path) {
   }
 }
 
-function wpEnv() {
+export function wpEnv() {
   loadDotEnv(join(ROOT, ".env"));
-  const base = process.env.WP_BASE_URL;
-  const user = process.env.WP_USER;
-  const pass = process.env.WP_APP_PASSWORD;
-  return { base, user, pass };
+  return { base: process.env.WP_BASE_URL, user: process.env.WP_USER, pass: process.env.WP_APP_PASSWORD };
+}
+
+export function wpConfigured(env = wpEnv()) {
+  return !!env.base && !!env.user && !!env.pass;
 }
 
 function authHeader(user, pass) {
@@ -54,12 +57,12 @@ function extractBody(html) {
   return m ? m[1].trim() : html;
 }
 
-async function wpFetch(path, { base, user, pass }, options = {}) {
-  const res = await fetch(`${base.replace(/\/$/, "")}/wp-json/wp/v2${path}`, {
+async function wpFetch(path, env, options = {}) {
+  const res = await fetch(`${env.base.replace(/\/$/, "")}/wp-json/wp/v2${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: authHeader(user, pass),
+      Authorization: authHeader(env.user, env.pass),
       ...(options.headers || {}),
     },
   });
@@ -70,7 +73,6 @@ async function wpFetch(path, { base, user, pass }, options = {}) {
   return data;
 }
 
-// Trouve l'ID de la catégorie « Guides d'achat », la crée si absente.
 async function ensureCategory(env) {
   const found = await wpFetch(`/categories?search=${encodeURIComponent(CATEGORY_NAME)}`, env);
   const exact = Array.isArray(found) && found.find((c) => c.name === CATEGORY_NAME);
@@ -79,21 +81,37 @@ async function ensureCategory(env) {
   return created.id;
 }
 
-// Cherche un article existant par slug pour le mettre à jour plutôt que dupliquer.
 async function findPostBySlug(slug, env) {
   const found = await wpFetch(`/posts?slug=${encodeURIComponent(slug)}&status=any`, env);
   return Array.isArray(found) && found.length ? found[0] : null;
 }
 
-function buildPayload(guide, categoryId, publish) {
+export function buildPayload(guide, config, categoryId, publish) {
   return {
     title: guide.title,
     slug: guide.slug,
     status: publish ? "publish" : "draft",
-    content: extractBody(renderHtml(guide, globalThis.__cfg)),
+    content: extractBody(renderHtml(guide, config)),
     excerpt: String(guide.intro || "").slice(0, 155),
     categories: categoryId ? [categoryId] : [],
   };
+}
+
+/**
+ * Publie (ou met à jour) un guide sur WordPress. Retourne { created, status, id, link }.
+ * @param guide  objet guide déjà validé
+ * @param config config d'affiliation résolue (pour le rendu des liens)
+ * @param opts   { publish?: boolean, env?: {base,user,pass} }
+ */
+export async function publishGuideToWordPress(guide, config, { publish = false, env = wpEnv() } = {}) {
+  if (!wpConfigured(env)) throw new Error("WordPress non configuré (WP_BASE_URL, WP_USER, WP_APP_PASSWORD).");
+  const categoryId = await ensureCategory(env);
+  const payload = buildPayload(guide, config, categoryId, publish);
+  const existing = await findPostBySlug(guide.slug, env);
+  const result = existing
+    ? await wpFetch(`/posts/${existing.id}`, env, { method: "POST", body: JSON.stringify(payload) })
+    : await wpFetch(`/posts`, env, { method: "POST", body: JSON.stringify(payload) });
+  return { created: !existing, status: result.status, id: result.id, link: result.link };
 }
 
 async function main() {
@@ -111,34 +129,28 @@ async function main() {
 
   const fileConfig = JSON.parse(readFileSync(join(ROOT, "config", "affiliation.json"), "utf8"));
   loadDotEnv(join(ROOT, ".env"));
-  globalThis.__cfg = resolveConfig(fileConfig);
+  const config = resolveConfig(fileConfig);
 
   if (dryRun) {
-    const payload = buildPayload(guide, null, publish);
+    const payload = buildPayload(guide, config, null, publish);
     console.log("— DRY RUN — payload WordPress (non envoyé) :\n");
     console.log(JSON.stringify({ ...payload, content: payload.content.slice(0, 400) + "… [tronqué]" }, null, 2));
     console.log(`\n(Contenu HTML complet : ${payload.content.length} caractères)`);
     return;
   }
 
-  const env = wpEnv();
-  if (!env.base || !env.user || !env.pass) {
+  if (!wpConfigured()) {
     console.error("❌ Variables WordPress manquantes (WP_BASE_URL, WP_USER, WP_APP_PASSWORD). Voir .env.example.");
     process.exit(1);
   }
-
-  const categoryId = await ensureCategory(env);
-  const payload = buildPayload(guide, categoryId, publish);
-  const existing = await findPostBySlug(guide.slug, env);
-
-  const result = existing
-    ? await wpFetch(`/posts/${existing.id}`, env, { method: "POST", body: JSON.stringify(payload) })
-    : await wpFetch(`/posts`, env, { method: "POST", body: JSON.stringify(payload) });
-
-  console.log(`✅ ${existing ? "Mis à jour" : "Créé"} : « ${result.title?.rendered || guide.title} »`);
+  const result = await publishGuideToWordPress(guide, config, { publish });
+  console.log(`✅ ${result.created ? "Créé" : "Mis à jour"} : « ${guide.title} »`);
   console.log(`   Statut : ${result.status} · ID ${result.id}`);
   console.log(`   ${result.link}`);
   if (result.status !== "publish") console.log("   (Brouillon — relire puis publier depuis WordPress.)");
 }
 
-main().catch((e) => { console.error("❌", e.message); process.exit(1); });
+// CLI uniquement (n'exécute pas main() lors d'un import)
+if (process.argv[1] && process.argv[1].endsWith("publish-wordpress.mjs")) {
+  main().catch((e) => { console.error("❌", e.message); process.exit(1); });
+}

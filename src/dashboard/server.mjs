@@ -24,6 +24,7 @@ import { renderMarkdown } from "../lib/render-markdown.mjs";
 import { resolveConfig } from "../lib/affiliate.mjs";
 import { buildIntentMatrix, suggestTitles } from "../seo/intent.mjs";
 import { rankGuides } from "../seo/recommend.mjs";
+import { publishGuideToWordPress, wpConfigured } from "../publish-wordpress.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..", "..");
@@ -71,14 +72,17 @@ function listGuides() {
     .sort((a, b) => Number(a.draft) - Number(b.draft) || a.title.localeCompare(b.title));
 }
 
-function generateGuide(slug, config) {
-  // Trouve le fichier source par slug (ignore les squelettes _ sauf si nommé exactement)
+function readGuideBySlug(slug) {
   const candidates = readdirSync(GUIDES_DIR).filter((f) => f.endsWith(".json"));
   const file = candidates.find((f) => {
     try { return JSON.parse(readFileSync(join(GUIDES_DIR, f), "utf8")).slug === slug; } catch { return false; }
   });
   if (!file) throw new Error(`Guide introuvable pour le slug « ${slug} »`);
-  const guide = JSON.parse(readFileSync(join(GUIDES_DIR, file), "utf8"));
+  return JSON.parse(readFileSync(join(GUIDES_DIR, file), "utf8"));
+}
+
+function generateGuide(slug, config) {
+  const guide = readGuideBySlug(slug);
   validateGuide(guide);
   mkdirSync(OUTPUT_DIR, { recursive: true });
   writeFileSync(join(OUTPUT_DIR, `${guide.slug}.md`), renderMarkdown(guide, config));
@@ -162,6 +166,20 @@ const server = createServer((req, res) => {
       const result = generateGuide(url.searchParams.get("slug"), config);
       return json(res, 200, { ok: true, ...result });
     } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+  }
+
+  if (url.pathname === "/api/publish-wp" && req.method === "POST") {
+    (async () => {
+      try {
+        if (!wpConfigured()) throw new Error("WordPress non configuré (voir .env).");
+        const guide = readGuideBySlug(url.searchParams.get("slug"));
+        validateGuide(guide);
+        const publish = url.searchParams.get("publish") === "1";
+        const result = await publishGuideToWordPress(guide, config, { publish });
+        return json(res, 200, { ok: true, ...result });
+      } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+    })();
+    return;
   }
 
   if (url.pathname === "/api/seo") {
@@ -250,20 +268,22 @@ async function load(){
   document.getElementById('kpis').innerHTML = [
     ['Guides',k.guides],['Publiés',k.published],['Brouillons',k.drafts],['Produits',k.products],['Revenus €',k.revenueTotal.toFixed(2)]
   ].map(([l,v])=>'<div class="kpi"><b>'+v+'</b>'+l+'</div>').join('');
-  const s=d.status;
+  const s=d.status; window.WP = s.wpConfigured;
   document.getElementById('status').innerHTML =
     pill('Amazon Partenaires', s.amazonConfigured) + pill('Awin', s.awinEnabled) +
     pill('WordPress', s.wpConfigured) + pill('IA / Claude', s.aiConfigured) +
     '<span><small>Site : '+(s.site||'—')+'</small></span>';
   document.querySelector('#guides tbody').innerHTML = d.guides.map(g=>{
     const st = g.draft?'<span class="badge b-draft">brouillon</span>':(g.generated?'<span class="badge b-ok">généré</span>':'<span class="badge b-no">à générer</span>');
+    const wpBtn = (g.generated && window.WP) ? ' <button onclick="pubwp(\\''+g.slug+'\\')">→ WP</button>' : '';
     const act = g.draft?'<small>compléter d\\'abord</small>':
-      '<button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'');
+      '<button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'')+wpBtn;
     return '<tr><td>'+g.title+'</td><td>'+g.category+'</td><td>'+g.products+'</td><td>'+st+'</td><td>'+act+'</td></tr>';
   }).join('');
 }
 function pill(l,ok){return '<span><span class="badge '+(ok?'b-ok':'b-no')+'">'+(ok?'OK':'à faire')+'</span> '+l+'</span>';}
 async function gen(slug){const r=await (await fetch(q('/api/generate?slug='+encodeURIComponent(slug)),{method:'POST'})).json();alert(r.ok?'Généré : '+r.slug+' ('+r.products+' produits)':'Erreur : '+r.error);load();}
+async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en BROUILLON ?'))return;const r=await (await fetch(q('/api/publish-wp?slug='+encodeURIComponent(slug)),{method:'POST'})).json();if(r.ok){if(confirm((r.created?'Brouillon créé':'Article mis à jour')+' sur WP (statut '+r.status+').\\nOuvrir l\\'article ?'))window.open(r.link,'_blank');}else alert('Erreur : '+r.error);}
 async function seo(){const kw=document.getElementById('kw').value;if(!kw)return;const r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();const o=document.getElementById('seoOut');o.hidden=false;o.textContent=JSON.stringify(r,null,2);}
 async function reco(){const i=document.getElementById('interests').value;const r=await (await fetch(q('/api/recommend?interests='+encodeURIComponent(i)))).json();const o=document.getElementById('recoOut');o.hidden=false;o.textContent=JSON.stringify(r.results,null,2);}
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}

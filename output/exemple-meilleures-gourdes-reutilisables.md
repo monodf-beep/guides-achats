@@ -10,9 +10,9 @@
 
 | Distinction | Produit | Note | Voir l'offre |
 | --- | --- | --- | --- |
-| **Meilleur choix global** | Chilly's Series 2 500 ml | ★★★★★ (4.6/5) | [Voir le prix](https://www.amazon.fr/dp/B08EXAMPLE1/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
-| **Meilleur rapport qualité-prix** | Ion8 Leak Proof 1 L | ★★★★☆ (4.4/5) | [Voir le prix](https://www.amazon.fr/dp/B07EXAMPLE2/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
-| **Premium / randonnée** | Hydro Flask Wide Mouth 946 ml | ★★★★★ (4.7/5) | [Voir le prix](https://www.amazon.fr/dp/B06EXAMPLE3/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
+| **Meilleur choix global** | Chilly's Series 2 500 ml | ★★★★★ (4.6/5) | [Acheter sur Amazon](https://www.amazon.fr/dp/B08EXAMPLE1/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
+| **Meilleur rapport qualité-prix** | Ion8 Leak Proof 1 L | ★★★★☆ (4.4/5) | [Acheter sur Amazon](https://www.amazon.fr/dp/B07EXAMPLE2/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
+| **Premium / randonnée** | Hydro Flask Wide Mouth 946 ml | ★★★★★ (4.7/5) | [Acheter sur Amazon](https://www.amazon.fr/dp/B06EXAMPLE3/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR) |
 
 ## Notre comparatif détaillé
 
@@ -33,7 +33,9 @@ Une gourde isotherme en inox au design soigné, qui garde les boissons froides j
 - ⚠️ Goulot un peu étroit pour les glaçons
 - ⚠️ Prix au-dessus de la moyenne
 
-👉 **[Voir le prix sur Amazon](https://www.amazon.fr/dp/B08EXAMPLE1/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+👉 **[Acheter sur Amazon](https://www.amazon.fr/dp/B08EXAMPLE1/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+
+*Prix indicatif relevé au moment de la publication : 29,90 €.*
 
 ---
 
@@ -54,7 +56,9 @@ Gourde en tritan légère, vraiment étanche et facile à boire d'une main. Idé
 - ⚠️ Pas d'isolation thermique
 - ⚠️ Plastique plutôt qu'inox
 
-👉 **[Voir le prix sur Amazon](https://www.amazon.fr/dp/B07EXAMPLE2/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+👉 **[Acheter sur Amazon](https://www.amazon.fr/dp/B07EXAMPLE2/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+
+*Prix indicatif relevé au moment de la publication : 16,95 €.*
 
 ---
 
@@ -75,13 +79,28 @@ La référence premium : isolation exceptionnelle, robustesse à toute épreuve 
 - ⚠️ Tarif élevé
 - ⚠️ Plus lourde et encombrante
 
-👉 **[Voir le prix sur Amazon](https://www.amazon.fr/dp/B06EXAMPLE3/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+👉 **[Acheter sur Amazon](https://www.amazon.fr/dp/B06EXAMPLE3/?tag=REMPLACER-21&linkCode=ll1&language=fr_FR)**
+
+*Prix indicatif relevé au moment de la publication : 44,95 €.*
 
 ---
+
+## Les autres modèles que nous avons écartés
+
+- **Dopper Insulated 580 ml** — design néerlandais séduisant, mais isolation en retrait et prix élevé.
+- **Klean Kanteen Classic 800 ml** — très robuste, mais bouchon à vis peu pratique au quotidien.
 
 ## Comment bien choisir ?
 
 Pour un usage quotidien en ville, une gourde isotherme en inox de 500 ml suffit. Pour le sport, privilégiez la légèreté et une ouverture une main. Pour la randonnée, optez pour un grand volume (≥ 750 ml), une isolation performante et un large goulot compatible glaçons. Vérifiez toujours l'absence de BPA et la garantie d'étanchéité.
+
+## À qui s'adresse ce guide ?
+
+Ce comparatif s'adresse à toute personne souhaitant remplacer durablement les bouteilles jetables : citadins en quête d'une gourde élégante pour le bureau, sportifs cherchant la légèreté, et randonneurs ayant besoin d'une isolation performante sur la durée.
+
+## Pourquoi nous faire confiance
+
+Cultura Sabauda mène ses comparatifs de façon indépendante. Aucune marque ne paie pour figurer dans ce classement, et nos recommandations reposent uniquement sur des critères objectifs (matériaux, étanchéité, isolation, rapport qualité-prix). Notre seule rémunération provient des commissions d'affiliation, sans incidence sur l'ordre du classement.
 
 ## Méthodologie
 
@@ -108,6 +127,11 @@ Rincez quotidiennement à l'eau chaude savonneuse avec un goupillon. Un mélange
 **Quelle contenance choisir ?**
 
 500 ml pour un usage urbain léger, 750 ml à 1 L pour le sport et la randonnée. Au-delà, le poids devient pénalisant au quotidien.
+
+## À lire aussi
+
+- [Les meilleures liseuses pour lire partout](/guides-achat/meilleures-liseuses)
+- [Idées cadeaux culturels à moins de 50 €](/guides-achat/idees-cadeaux-culturels)
 
 ---
 

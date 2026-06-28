@@ -8,11 +8,16 @@ Reprise de la structure qui convertit le mieux (Le Monde / Wirecutter) :
 2. **Chapô** : 2–3 phrases résumant le besoin et la promesse
 3. **Encadré de transparence** (auto-généré)
 4. **Notre sélection en un coup d'œil** : tableau Meilleur global / Rapport qualité-prix / Premium
-5. **Comparatif détaillé** : une fiche par produit (photo, points forts/faibles, prix, CTA affilié)
-6. **Comment bien choisir** : guide d'achat (critères concrets)
-7. **Méthodologie** : comment la sélection a été faite (transparence)
-8. **FAQ** : questions fréquentes (bon pour le SEO — données structurées)
-9. **Mentions légales d'affiliation** (auto-générées)
+5. **Comparatif détaillé** : une fiche par produit (photo, forts/faibles, CTA « Acheter sur [Marchand] »,
+   prix « relevé au moment de la publication »)
+6. **Les autres modèles écartés** (`alsoConsidered`) — optionnel
+7. **Comment bien choisir** : guide d'achat (critères concrets)
+8. **À qui s'adresse ce guide** (`audience`) — optionnel
+9. **Pourquoi nous faire confiance** (`trust`) — optionnel, renforce la crédibilité (cf. Le Monde)
+10. **Méthodologie** : comment la sélection a été faite (transparence)
+11. **FAQ** : questions fréquentes (bon pour le SEO — données structurées)
+12. **À lire aussi** (`relatedGuides`) : maillage interne SEO — optionnel
+13. **Mentions légales d'affiliation** (auto-générées)
 
 ## Format des données (`data/guides/*.json`)
 
@@ -33,6 +38,10 @@ Un guide = un fichier JSON. Champs :
 | `picks` | object[] | ✅ | Distinctions (voir ci-dessous) |
 | `products` | object[] | ✅ | Produits comparés (voir ci-dessous) |
 | `buyingGuide` | string | | Section « comment choisir » |
+| `audience` | string | | « À qui s'adresse ce guide » (inspiré Le Monde) |
+| `trust` | string | | « Pourquoi nous faire confiance » (indépendance, méthode) |
+| `alsoConsidered` | object[] | | Modèles écartés : `{name, note}` |
+| `relatedGuides` | object[] | | Maillage interne SEO : `{title, url}` (« À lire aussi ») |
 | `faq` | object[] | | Questions/réponses (`{q, a}`) |
 
 ### `picks[]` (distinctions / sélection en un coup d'œil)
@@ -56,6 +65,17 @@ Un guide = un fichier JSON. Champs :
 | `summary` | | Paragraphe descriptif |
 | `pros` | | Points forts (string[]) |
 | `cons` | | Points faibles (string[]) |
+
+> Dans le bloc `affiliate`, le champ optionnel `merchant` définit le nom affiché sur le bouton
+> (« Acheter sur **Decathlon** »). Pour Amazon, « Amazon » est utilisé par défaut.
+
+### Taxonomie de catégories (référence Le Monde, cf. `07-analyse-lemonde.md`)
+
+À réutiliser/adapter pour le champ `category` : Smartphones et Tablettes · Ordinateurs ·
+Photo et Vidéo · Son et Musique · Sports et forme · Soin et bien-être · Accessoires cuisine ·
+Arts et loisirs · Enfants et bébés · Animalerie · Outdoor · Maison.
+Pour l'angle culture & patrimoine, ajouter par ex. : Livres & lecture · Beaux-arts & création ·
+Visite & patrimoine.
 
 ## Checklist qualité avant publication
 

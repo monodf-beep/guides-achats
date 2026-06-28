@@ -2,7 +2,7 @@
  * Rendu d'un guide en page HTML autonome + données structurées Schema.org
  * (ItemList + FAQPage) pour un référencement (SEO) optimal — comme Le Monde.
  */
-import { buildAffiliateLink } from "./affiliate.mjs";
+import { buildAffiliateLink, merchantLabel } from "./affiliate.mjs";
 
 const esc = (s) =>
   String(s ?? "")
@@ -30,7 +30,8 @@ export function renderHtml(guide, config) {
         ${p.summary ? `<p>${esc(p.summary)}</p>` : ""}
         ${list(p.pros, "pros", "✅")}
         ${list(p.cons, "cons", "⚠️")}
-        <a class="cta" href="${esc(link.href)}" rel="${link.rel}" target="_blank">Voir le prix</a>
+        <a class="cta" href="${esc(link.href)}" rel="${link.rel}" target="_blank">Acheter sur ${esc(merchantLabel(p.affiliate))}</a>
+        ${p.price ? `<p class="price-note">Prix indicatif relevé au moment de la publication : ${esc(p.price)}.</p>` : ""}
       </article>`;
     })
     .join("\n");
@@ -39,7 +40,7 @@ export function renderHtml(guide, config) {
     .map((pk) => {
       const p = byId[pk.productRef];
       const link = buildAffiliateLink(p.affiliate, config);
-      return `<tr><td><strong>${esc(pk.badge)}</strong></td><td>${esc(p.name)}</td><td>${p.rating ? "★ " + p.rating : ""}</td><td><a href="${esc(link.href)}" rel="${link.rel}" target="_blank">Voir l'offre</a></td></tr>`;
+      return `<tr><td><strong>${esc(pk.badge)}</strong></td><td>${esc(p.name)}</td><td>${p.rating ? "★ " + p.rating : ""}</td><td><a href="${esc(link.href)}" rel="${link.rel}" target="_blank">Acheter sur ${esc(merchantLabel(p.affiliate))}</a></td></tr>`;
     })
     .join("\n");
 
@@ -86,7 +87,13 @@ ${guide.products[0]?.image ? `<meta property="og:image" content="${esc(guide.pro
     <div class="grid">${productCards}</div>
   </section>
 
+  ${guide.alsoConsidered?.length ? `<section><h2>Les autres modèles que nous avons écartés</h2><ul>${guide.alsoConsidered.map((m) => `<li><strong>${esc(m.name)}</strong> — ${esc(m.note)}</li>`).join("")}</ul></section>` : ""}
+
   ${guide.buyingGuide ? `<section><h2>Comment bien choisir ?</h2><p>${esc(guide.buyingGuide)}</p></section>` : ""}
+
+  ${guide.audience ? `<section><h2>À qui s'adresse ce guide ?</h2><p>${esc(guide.audience)}</p></section>` : ""}
+
+  ${guide.trust ? `<section><h2>Pourquoi nous faire confiance</h2><p>${esc(guide.trust)}</p></section>` : ""}
 
   <section id="methodo">
     <h2>Méthodologie</h2>
@@ -95,6 +102,8 @@ ${guide.products[0]?.image ? `<meta property="og:image" content="${esc(guide.pro
   </section>
 
   ${guide.faq?.length ? `<section><h2>Questions fréquentes</h2>${guide.faq.map((qa) => `<details><summary>${esc(qa.q)}</summary><p>${esc(qa.a)}</p></details>`).join("")}</section>` : ""}
+
+  ${guide.relatedGuides?.length ? `<section><h2>À lire aussi</h2><ul class="related">${guide.relatedGuides.map((g) => `<li><a href="${esc(g.url)}">${esc(g.title)}</a></li>`).join("")}</ul></section>` : ""}
 
   <footer class="legal">
     Les prix sont indicatifs et peuvent varier. Cultura Sabauda perçoit une commission d'affiliation sur certains achats réalisés via cette page. <a href="/affiliation">Politique d'affiliation</a>.
@@ -162,6 +171,7 @@ table.picks a{color:var(--accent);font-weight:700;text-decoration:none}
 .meta{color:var(--muted);font-family:Arial,sans-serif;font-size:.9rem}
 .pros,.cons{list-style:none;padding:0;font-family:Arial,sans-serif;font-size:.92rem}
 .cta{display:inline-block;margin-top:10px;background:var(--accent);color:#fff;font-family:Arial,sans-serif;font-weight:700;text-decoration:none;padding:11px 22px;border-radius:6px}
+.price-note{color:var(--muted);font-family:Arial,sans-serif;font-size:.8rem;margin:.4em 0 0}
 details{border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}
 summary{cursor:pointer;font-weight:700}
 .legal{color:var(--muted);font-size:.82rem;font-family:Arial,sans-serif;margin-top:3em;border-top:1px solid var(--line);padding-top:1em}

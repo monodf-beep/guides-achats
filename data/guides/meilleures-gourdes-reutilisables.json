@@ -60,6 +60,16 @@
     }
   ],
   "buyingGuide": "Pour un usage quotidien en ville, une gourde isotherme en inox de 500 ml suffit. Pour le sport, privilégiez la légèreté et une ouverture une main. Pour la randonnée, optez pour un grand volume (≥ 750 ml), une isolation performante et un large goulot compatible glaçons. Vérifiez toujours l'absence de BPA et la garantie d'étanchéité.",
+  "audience": "Ce comparatif s'adresse à toute personne souhaitant remplacer durablement les bouteilles jetables : citadins en quête d'une gourde élégante pour le bureau, sportifs cherchant la légèreté, et randonneurs ayant besoin d'une isolation performante sur la durée.",
+  "trust": "Cultura Sabauda mène ses comparatifs de façon indépendante. Aucune marque ne paie pour figurer dans ce classement, et nos recommandations reposent uniquement sur des critères objectifs (matériaux, étanchéité, isolation, rapport qualité-prix). Notre seule rémunération provient des commissions d'affiliation, sans incidence sur l'ordre du classement.",
+  "alsoConsidered": [
+    { "name": "Dopper Insulated 580 ml", "note": "design néerlandais séduisant, mais isolation en retrait et prix élevé." },
+    { "name": "Klean Kanteen Classic 800 ml", "note": "très robuste, mais bouchon à vis peu pratique au quotidien." }
+  ],
+  "relatedGuides": [
+    { "title": "Les meilleures liseuses pour lire partout", "url": "/guides-achat/meilleures-liseuses" },
+    { "title": "Idées cadeaux culturels à moins de 50 €", "url": "/guides-achat/idees-cadeaux-culturels" }
+  ],
   "faq": [
     {
       "q": "Inox ou plastique (tritan) : que choisir ?",

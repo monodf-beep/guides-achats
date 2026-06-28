@@ -76,6 +76,16 @@ export function buildAffiliateLink(affiliate, config) {
 }
 
 /**
+ * Libellé du marchand pour le bouton « Acheter sur … ».
+ * Priorité : affiliate.merchant explicite > déduction par programme.
+ */
+export function merchantLabel(affiliate) {
+  if (affiliate?.merchant) return affiliate.merchant;
+  if (affiliate?.program === "amazon") return "Amazon";
+  return "le marchand";
+}
+
+/**
  * Fusionne config JSON + variables d'environnement (env prioritaire).
  */
 export function resolveConfig(fileConfig, env = process.env) {

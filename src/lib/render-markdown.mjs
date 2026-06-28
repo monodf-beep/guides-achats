@@ -1,7 +1,7 @@
 /**
  * Rendu d'un guide en Markdown (publiable dans WordPress, ou tout CMS Markdown).
  */
-import { buildAffiliateLink } from "./affiliate.mjs";
+import { buildAffiliateLink, merchantLabel } from "./affiliate.mjs";
 
 const stars = (n) => {
   if (!n) return "";
@@ -32,7 +32,7 @@ export function renderMarkdown(guide, config) {
   for (const pick of guide.picks) {
     const p = byId[pick.productRef];
     const link = buildAffiliateLink(p.affiliate, config);
-    L.push(`| **${pick.badge}** | ${p.name} | ${stars(p.rating)} | [Voir le prix](${link.href}) |`);
+    L.push(`| **${pick.badge}** | ${p.name} | ${stars(p.rating)} | [Acheter sur ${merchantLabel(p.affiliate)}](${link.href}) |`);
   }
   L.push("");
 
@@ -62,17 +62,42 @@ export function renderMarkdown(guide, config) {
       p.cons.forEach((x) => L.push(`- ⚠️ ${x}`));
       L.push("");
     }
-    L.push(`👉 **[Voir le prix sur ${labelFor(link.program)}](${link.href})**`);
+    L.push(`👉 **[Acheter sur ${merchantLabel(p.affiliate)}](${link.href})**`);
+    if (p.price) { L.push(""); L.push(`*Prix indicatif relevé au moment de la publication : ${p.price}.*`); }
     L.push("");
     L.push("---");
     L.push("");
   });
+
+  // Les autres modèles écartés
+  if (Array.isArray(guide.alsoConsidered) && guide.alsoConsidered.length) {
+    L.push("## Les autres modèles que nous avons écartés");
+    L.push("");
+    guide.alsoConsidered.forEach((m) => L.push(`- **${m.name}** — ${m.note}`));
+    L.push("");
+  }
 
   // Guide d'achat
   if (guide.buyingGuide) {
     L.push("## Comment bien choisir ?");
     L.push("");
     L.push(guide.buyingGuide);
+    L.push("");
+  }
+
+  // À qui s'adresse ce guide
+  if (guide.audience) {
+    L.push("## À qui s'adresse ce guide ?");
+    L.push("");
+    L.push(guide.audience);
+    L.push("");
+  }
+
+  // Pourquoi nous faire confiance
+  if (guide.trust) {
+    L.push("## Pourquoi nous faire confiance");
+    L.push("");
+    L.push(guide.trust);
     L.push("");
   }
 
@@ -98,6 +123,14 @@ export function renderMarkdown(guide, config) {
     });
   }
 
+  // À lire aussi (maillage interne SEO)
+  if (Array.isArray(guide.relatedGuides) && guide.relatedGuides.length) {
+    L.push("## À lire aussi");
+    L.push("");
+    guide.relatedGuides.forEach((g) => L.push(`- [${g.title}](${g.url})`));
+    L.push("");
+  }
+
   // Pied de page conformité
   L.push("---");
   L.push("");
@@ -105,8 +138,4 @@ export function renderMarkdown(guide, config) {
   L.push("");
 
   return L.join("\n");
-}
-
-function labelFor(program) {
-  return { amazon: "Amazon", awin: "le marchand", direct: "la boutique" }[program] || "le marchand";
 }

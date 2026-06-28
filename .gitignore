@@ -10,6 +10,9 @@ output/*
 !output/.gitkeep
 !output/exemple-*
 
+# Données opérationnelles locales
+data/revenue.json
+
 # Système
 .DS_Store
 *.log

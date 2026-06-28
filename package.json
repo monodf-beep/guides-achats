@@ -11,7 +11,8 @@
     "seo:intent": "node src/seo/intent.mjs",
     "seo:recommend": "node src/seo/recommend.mjs",
     "ai:draft": "node src/ai/draft-guide.mjs",
-    "publish:wp": "node src/publish-wordpress.mjs"
+    "publish:wp": "node src/publish-wordpress.mjs",
+    "dashboard": "node src/dashboard/server.mjs"
   },
   "engines": {
     "node": ">=18"

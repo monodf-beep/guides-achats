@@ -18,6 +18,7 @@ d'affiliation**, au service du financement des projets de Cultura Sabauda.
 | `src/publish-wordpress.mjs` | **Publication WordPress** depuis le JSON (API REST) |
 | `src/seo/` | **SEO** : `intent.mjs` (intentions d'achat + brief) et `recommend.mjs` (reco par profil) |
 | `src/ai/` | **Rédaction assistée par Claude** (`draft-guide.mjs`) |
+| `src/dashboard/` | **Tableau de bord** back-office à héberger sur le VPS (`server.mjs`) |
 | `data/guides/` | Les **guides** et **squelettes** (`_*.json`) sous forme de données structurées |
 | `config/` | Configuration des **programmes d'affiliation** (tags, identifiants) |
 | `output/` | Les fichiers **générés** (Markdown + HTML) et **briefs SEO** |
@@ -67,6 +68,18 @@ Les liens affiliés imposent des **obligations légales** en France/UE : mention
 visible, attribut `rel="sponsored"`, respect du RGPD et des règles Amazon Partenaires. Tout est
 intégré au générateur et détaillé dans [`docs/02-conformite-legale.md`](docs/02-conformite-legale.md).
 **À lire avant toute publication.**
+
+## 📊 Tableau de bord (VPS)
+
+Back-office pour piloter les guides depuis ton VPS, **avant** de brancher WordPress.
+
+```bash
+npm run dashboard                       # http://localhost:8787
+DASHBOARD_TOKEN=secret npm run dashboard  # accès protégé
+```
+
+KPIs, état de la config, génération + aperçu des guides, outil SEO, recommandation, suivi des
+revenus. Déploiement (systemd/pm2 + Nginx HTTPS) et sécurité : [docs/10](docs/10-tableau-de-bord.md).
 
 ## 🤖 SEO, recommandation & IA
 

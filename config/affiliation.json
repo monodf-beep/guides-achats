@@ -1,0 +1,27 @@
+{
+  "_comment": "Configuration des programmes d'affiliation. Les identifiants peuvent aussi être passés par variables d'environnement (voir .env.example) qui ont priorité. NE PAS committer de vrais secrets ici.",
+  "site": {
+    "name": "Cultura Sabauda",
+    "baseUrl": "https://www.culturasabauda.eu",
+    "guidesPath": "/guides-achat"
+  },
+  "amazon": {
+    "enabled": true,
+    "marketplace": "amazon.fr",
+    "partnerTag": "REMPLACER-21",
+    "linkCode": "ll1"
+  },
+  "awin": {
+    "enabled": false,
+    "affiliateId": "REMPLACER",
+    "gateway": "https://www.awin1.com/cread.php"
+  },
+  "direct": {
+    "enabled": true
+  },
+  "utm": {
+    "source": "culturasabauda",
+    "medium": "affiliate",
+    "campaign": "guides-achat"
+  }
+}

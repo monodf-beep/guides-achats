@@ -1,0 +1,77 @@
+{
+  "slug": "meilleures-gourdes-reutilisables",
+  "title": "Les meilleures gourdes réutilisables en 2026",
+  "category": "Maison & Lifestyle",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-28",
+  "author": "La rédaction Cultura Sabauda",
+  "intro": "Étanchéité, isolation thermique, facilité de nettoyage : après comparaison des modèles les plus populaires, voici nos gourdes réutilisables préférées pour remplacer durablement les bouteilles en plastique, au quotidien comme en randonnée.",
+  "methodology": "Notre sélection s'appuie sur la synthèse de tests reconnus, des fiches techniques constructeurs et des retours d'utilisateurs vérifiés. Nous privilégions les matériaux sains (inox 18/8, sans BPA), la durabilité et le rapport qualité-prix. Cultura Sabauda ne reçoit aucune rémunération des marques pour figurer dans ce classement.",
+  "criteria": [
+    "Étanchéité (test position couchée)",
+    "Performance d'isolation chaud/froid",
+    "Qualité des matériaux et absence de substances nocives",
+    "Facilité de nettoyage et ouverture du goulot",
+    "Poids et ergonomie",
+    "Rapport qualité-prix"
+  ],
+  "picks": [
+    { "badge": "Meilleur choix global", "productRef": "chillys-s2" },
+    { "badge": "Meilleur rapport qualité-prix", "productRef": "ion8-leak" },
+    { "badge": "Premium / randonnée", "productRef": "hydro-flask-wide" }
+  ],
+  "products": [
+    {
+      "id": "chillys-s2",
+      "name": "Chilly's Series 2 500 ml",
+      "brand": "Chilly's",
+      "price": "29,90 €",
+      "rating": 4.6,
+      "image": "https://placehold.co/600x400?text=Chilly%27s+Series+2",
+      "summary": "Une gourde isotherme en inox au design soigné, qui garde les boissons froides jusqu'à 24 h et chaudes jusqu'à 12 h. Un excellent compromis taille/poids pour un usage urbain.",
+      "pros": ["Isolation chaud/froid très convaincante", "Bouchon parfaitement étanche", "Finitions et coloris soignés"],
+      "cons": ["Goulot un peu étroit pour les glaçons", "Prix au-dessus de la moyenne"],
+      "affiliate": { "program": "amazon", "asin": "B08EXAMPLE1" }
+    },
+    {
+      "id": "ion8-leak",
+      "name": "Ion8 Leak Proof 1 L",
+      "brand": "Ion8",
+      "price": "16,95 €",
+      "rating": 4.4,
+      "image": "https://placehold.co/600x400?text=Ion8+1L",
+      "summary": "Gourde en tritan légère, vraiment étanche et facile à boire d'une main. Idéale pour le sport et le bureau quand l'isolation n'est pas la priorité.",
+      "pros": ["Très bon rapport qualité-prix", "Ouverture une main pratique", "Large goulot facile à nettoyer"],
+      "cons": ["Pas d'isolation thermique", "Plastique plutôt qu'inox"],
+      "affiliate": { "program": "amazon", "asin": "B07EXAMPLE2" }
+    },
+    {
+      "id": "hydro-flask-wide",
+      "name": "Hydro Flask Wide Mouth 946 ml",
+      "brand": "Hydro Flask",
+      "price": "44,95 €",
+      "rating": 4.7,
+      "image": "https://placehold.co/600x400?text=Hydro+Flask",
+      "summary": "La référence premium : isolation exceptionnelle, robustesse à toute épreuve et large goulot acceptant les glaçons. Le choix durable pour la randonnée et les longues sorties.",
+      "pros": ["Isolation parmi les meilleures du marché", "Construction très robuste", "Compatible glaçons (large goulot)"],
+      "cons": ["Tarif élevé", "Plus lourde et encombrante"],
+      "affiliate": { "program": "amazon", "asin": "B06EXAMPLE3" }
+    }
+  ],
+  "buyingGuide": "Pour un usage quotidien en ville, une gourde isotherme en inox de 500 ml suffit. Pour le sport, privilégiez la légèreté et une ouverture une main. Pour la randonnée, optez pour un grand volume (≥ 750 ml), une isolation performante et un large goulot compatible glaçons. Vérifiez toujours l'absence de BPA et la garantie d'étanchéité.",
+  "faq": [
+    {
+      "q": "Inox ou plastique (tritan) : que choisir ?",
+      "a": "L'inox 18/8 offre isolation et durabilité, sans goût. Le tritan est plus léger et moins cher, mais sans isolation. Tous deux sont sans BPA s'ils sont certifiés."
+    },
+    {
+      "q": "Comment nettoyer une gourde réutilisable ?",
+      "a": "Rincez quotidiennement à l'eau chaude savonneuse avec un goupillon. Un mélange eau + bicarbonate ou vinaigre blanc une fois par semaine élimine les odeurs. Évitez le lave-vaisselle pour les modèles isothermes."
+    },
+    {
+      "q": "Quelle contenance choisir ?",
+      "a": "500 ml pour un usage urbain léger, 750 ml à 1 L pour le sport et la randonnée. Au-delà, le poids devient pénalisant au quotidien."
+    }
+  ]
+}

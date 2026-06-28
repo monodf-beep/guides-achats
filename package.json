@@ -1,0 +1,16 @@
+{
+  "name": "guides-achats-cultura-sabauda",
+  "version": "0.1.0",
+  "description": "Outil de publication de guides d'achat affiliés pour Cultura Sabauda",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node src/generate.mjs --all",
+    "build:one": "node src/generate.mjs",
+    "example": "node src/generate.mjs data/guides/meilleures-gourdes-reutilisables.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

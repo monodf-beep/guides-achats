@@ -1,0 +1,15 @@
+# Secrets
+.env
+config/affiliation.local.json
+
+# Dépendances (le générateur n'en a pas, mais au cas où)
+node_modules/
+
+# Sorties générées (on garde uniquement les exemples versionnés)
+output/*
+!output/.gitkeep
+!output/exemple-*
+
+# Système
+.DS_Store
+*.log

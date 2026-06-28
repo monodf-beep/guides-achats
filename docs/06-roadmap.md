@@ -10,7 +10,7 @@
 
 ## Phase 1 — Décisions & lancement (à valider avec l'équipe)
 
-- [ ] **Trancher la plateforme de publication** (Shopify blog vs site statique vs WordPress)
+- [x] **Plateforme de publication tranchée : WordPress** (publication manuelle immédiate, API REST en phase 2)
 - [ ] Créer/valider les **comptes d'affiliation** (Amazon Partenaires en priorité)
 - [ ] Définir la **thématique** et la ligne éditoriale (niche culture/patrimoine recommandée)
 - [ ] Publier la page **« Politique d'affiliation »** et les mentions légales
@@ -19,8 +19,9 @@
 
 ## Phase 2 — Industrialisation
 
-- [ ] **Publication automatique Shopify** depuis le JSON (API Shopify / MCP) :
-      création d'article de blog, upload d'image, balises SEO
+- [ ] **Publication automatique WordPress** depuis le JSON (API REST `wp/v2/posts`) :
+      création d'article, catégorie, slug, image à la une, métadonnées SEO ;
+      authentification par mot de passe d'application
 - [ ] Page **hub** « Tous nos guides » générée automatiquement (index)
 - [ ] Génération du **sitemap** et flux de mise à jour
 - [ ] Vérificateur de **liens morts** (ASIN/URL) automatisé

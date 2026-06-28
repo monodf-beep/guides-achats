@@ -1,5 +1,5 @@
 /**
- * Rendu d'un guide en Markdown (publiable sur Shopify blog, WordPress, ou site statique).
+ * Rendu d'un guide en Markdown (publiable dans WordPress, ou tout CMS Markdown).
  */
 import { buildAffiliateLink } from "./affiliate.mjs";
 

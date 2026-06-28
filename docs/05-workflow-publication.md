@@ -10,30 +10,37 @@ Process de bout en bout, de l'idée au guide publié et suivi.
 3. RÉDACTION       → créer data/guides/<slug>.json (gabarit 03-gabarit-editorial.md)
 4. GÉNÉRATION      → node src/generate.mjs data/guides/<slug>.json
 5. RELECTURE       → checklist qualité (03) + checklist conformité (02)
-6. PUBLICATION     → coller le Markdown sur la plateforme cible (Shopify / WordPress / statique)
+6. PUBLICATION     → coller le contenu dans WordPress (Articles › Ajouter)
 7. INDEXATION      → soumettre l'URL à Google Search Console, ajouter au maillage interne
 8. SUIVI           → mesurer trafic (Analytics) et revenus (tableau de bord affilié)
 9. MISE À JOUR     → rafraîchir prix/classement/date tous les 3–6 mois
 ```
 
-## Publier le résultat selon la plateforme
+## Publier le résultat sur WordPress (plateforme retenue)
 
-### Option A — Shopify (blog)
-1. Admin Shopify → **Boutique en ligne › Articles de blog › Créer**.
-2. Basculer l'éditeur en mode **HTML** (`<>`), coller le contenu de `output/<slug>.html`
-   (corps `<main>`), ou convertir le `.md` via l'éditeur.
-3. Renseigner titre SEO, méta-description, slug `/guides-achat/<slug>`, image à la une.
-4. Vérifier l'affichage des liens `rel="sponsored"` et de l'encadré transparence.
+### Méthode manuelle (immédiate)
+1. WordPress → **Articles › Ajouter**.
+2. Ajouter un bloc **HTML personnalisé** et coller le corps `<main>` de
+   `output/<slug>.html` (rendu fidèle, encadré transparence + boutons inclus),
+   **ou** un bloc **Markdown** et coller `output/<slug>.md` (si le bloc Markdown
+   ou l'éditeur classique est activé).
+3. Créer la catégorie/rubrique **« Guides d'achat »** et y ranger l'article.
+4. Renseigner le **slug** `guides-achat/<slug>`, le titre SEO et la
+   méta-description (extension **Rank Math** ou **Yoast SEO**).
+5. Définir l'**image à la une**.
+6. Vérifier que les liens portent bien `rel="sponsored nofollow"` et que
+   l'encadré de transparence est visible.
 
-> Une automatisation via l'API Shopify (création d'article depuis le JSON) est prévue en phase 2
-> (cf. `06-roadmap.md`) — les outils MCP Shopify sont disponibles dans cet environnement.
+> ⚠️ Selon le thème, les données structurées Schema.org (JSON-LD) du `.html`
+> peuvent ne pas être reprises si vous collez seulement le `<main>`. Dans ce cas,
+> laisser Rank Math/Yoast gérer le balisage, **ou** coller aussi le bloc
+> `<script type="application/ld+json">` via un bloc HTML.
 
-### Option B — WordPress
-Coller le `.md` (bloc Markdown / Gutenberg) ou le HTML. Renseigner les champs SEO (Rank Math / Yoast).
-
-### Option C — Site statique (Astro / Next.js)
-Committer le `.md` dans le dossier `content/` du site → build & déploiement automatique
-(GitHub Pages / Vercel). C'est l'option la plus « tout-en-un dans GitHub ».
+### Méthode automatisée (phase 2)
+Publication directe via l'**API REST WordPress** (`POST /wp-json/wp/v2/posts`)
+depuis le JSON : création de l'article, catégorie, slug, image à la une et
+métadonnées SEO en une commande. Authentification par **mot de passe
+d'application** WordPress. Voir `06-roadmap.md`.
 
 ## Rôles (si équipe)
 

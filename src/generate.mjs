@@ -7,7 +7,7 @@
  *   node src/generate.mjs data/guides/mon-guide.json --out output
  *   node src/generate.mjs --all                 # génère tous les guides de data/guides/
  *
- * Sorties (dans output/) : <slug>.md (publiable Shopify/WordPress) et <slug>.html (aperçu autonome).
+ * Sorties (dans output/) : <slug>.md (publiable dans WordPress) et <slug>.html (aperçu autonome).
  */
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";

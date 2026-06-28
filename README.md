@@ -30,7 +30,7 @@ cp .env.example .env        # puis renseigner AMAZON_PARTNER_TAG
 
 # 2. Générer le guide d'exemple
 npm run example
-#   → output/meilleures-gourdes-reutilisables.md  (à coller dans Shopify/WordPress)
+#   → output/meilleures-gourdes-reutilisables.md  (à coller dans WordPress)
 #   → output/meilleures-gourdes-reutilisables.html (aperçu autonome dans le navigateur)
 
 # 3. Générer tous les guides
@@ -67,11 +67,11 @@ intégré au générateur et détaillé dans [`docs/02-conformite-legale.md`](do
 
 ## 🗺️ Décisions à valider (hypothèses actuelles)
 
-Ce dépôt a été initialisé avec des choix par défaut, **à confirmer ou ajuster** :
+Choix arrêtés / à confirmer :
 
-- **Plateforme de publication** : générateur agnostique (sortie Markdown/HTML) → publiable sur
-  **Shopify (blog)** ou un **site statique**. À trancher selon l'infra Cultura Sabauda.
-- **Affiliation prioritaire** : Amazon Partenaires (démarrage simple) + multi-programmes.
-- **Thématique** : angle « culture & patrimoine » recommandé, gabarit généraliste.
+- **Plateforme de publication** : ✅ **WordPress** (le générateur produit du Markdown/HTML
+  collable, automatisation via l'API REST WordPress prévue en phase 2).
+- **Affiliation prioritaire** : Amazon Partenaires (démarrage simple) + multi-programmes *(à confirmer)*.
+- **Thématique** : angle « culture & patrimoine » recommandé, gabarit généraliste *(à confirmer)*.
 
 Voir [`docs/06-roadmap.md`](docs/06-roadmap.md) pour le plan par phases.

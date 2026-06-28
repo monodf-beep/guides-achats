@@ -7,10 +7,17 @@
   "scripts": {
     "build": "node src/generate.mjs --all",
     "build:one": "node src/generate.mjs",
-    "example": "node src/generate.mjs data/guides/meilleures-gourdes-reutilisables.json"
+    "example": "node src/generate.mjs data/guides/meilleures-gourdes-reutilisables.json",
+    "seo:intent": "node src/seo/intent.mjs",
+    "seo:recommend": "node src/seo/recommend.mjs",
+    "ai:draft": "node src/ai/draft-guide.mjs",
+    "publish:wp": "node src/publish-wordpress.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.69.0"
   },
   "license": "UNLICENSED"
 }

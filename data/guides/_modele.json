@@ -1,0 +1,20 @@
+{
+  "_comment": "MODÈLE de squelette de guide. Copiez ce fichier, renseignez les produits (id, name, brand, price VÉRIFIÉ, affiliate avec asin/url VÉRIFIÉS), puis : (a) complétez l'éditorial à la main, ou (b) lancez 'node src/ai/draft-guide.mjs <ce fichier>' pour un brouillon rédigé par Claude. Le préfixe _ exclut ce fichier de 'npm run build'.",
+  "slug": "mon-guide",
+  "title": "Les meilleur·e·s X en 2026",
+  "category": "Catégorie",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-28",
+  "author": "La rédaction Cultura Sabauda",
+  "products": [
+    {
+      "id": "produit-1",
+      "name": "Nom du produit 1",
+      "brand": "Marque",
+      "price": "00,00 €",
+      "image": "https://placehold.co/600x400?text=Produit+1",
+      "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" }
+    }
+  ]
+}

@@ -14,11 +14,14 @@ d'affiliation**, au service du financement des projets de Cultura Sabauda.
 
 | Dossier | Contenu |
 | --- | --- |
-| `src/` | Le **générateur** : transforme un guide décrit en JSON → page Markdown + HTML prêtes à publier |
-| `data/guides/` | Les **guides** sous forme de données structurées (un fichier JSON par guide) |
+| `src/generate.mjs` | Le **générateur** : transforme un guide décrit en JSON → page Markdown + HTML prêtes à publier |
+| `src/publish-wordpress.mjs` | **Publication WordPress** depuis le JSON (API REST) |
+| `src/seo/` | **SEO** : `intent.mjs` (intentions d'achat + brief) et `recommend.mjs` (reco par profil) |
+| `src/ai/` | **Rédaction assistée par Claude** (`draft-guide.mjs`) |
+| `data/guides/` | Les **guides** et **squelettes** (`_*.json`) sous forme de données structurées |
 | `config/` | Configuration des **programmes d'affiliation** (tags, identifiants) |
-| `output/` | Les fichiers **générés** (Markdown + HTML) |
-| `docs/` | La **documentation** : stratégie, affiliation, conformité légale, gabarit, SEO, workflow, roadmap |
+| `output/` | Les fichiers **générés** (Markdown + HTML) et **briefs SEO** |
+| `docs/` | La **documentation** : stratégie, affiliation, conformité, gabarit, SEO, workflow, roadmap, analyse Le Monde, SEO & perso, IA |
 
 ## 🚀 Démarrage rapide
 
@@ -64,6 +67,25 @@ Les liens affiliés imposent des **obligations légales** en France/UE : mention
 visible, attribut `rel="sponsored"`, respect du RGPD et des règles Amazon Partenaires. Tout est
 intégré au générateur et détaillé dans [`docs/02-conformite-legale.md`](docs/02-conformite-legale.md).
 **À lire avant toute publication.**
+
+## 🤖 SEO, recommandation & IA
+
+```bash
+# Trouver les intentions d'achat d'un mot-clé + écrire un brief SEO
+node src/seo/intent.mjs "liseuse" --category "Livres & lecture" --brief
+
+# Recommander des guides selon les centres d'intérêt d'un visiteur (règle-à-règle)
+node src/seo/recommend.mjs --interests "Livres & lecture, Visite & patrimoine"
+
+# Rédiger un brouillon de guide avec Claude (npm i @anthropic-ai/sdk + ANTHROPIC_API_KEY)
+node src/ai/draft-guide.mjs data/guides/_sujet-meilleures-liseuses.json
+
+# Publier sur WordPress (API REST — voir .env.example)
+node src/publish-wordpress.mjs data/guides/mon-guide.json --dry-run
+```
+
+Détails : [SEO & personnalisation](docs/08-seo-et-personnalisation.md) · [IA / Claude](docs/09-ia-claude.md).
+La rédaction IA n'invente **jamais** les ASIN/prix (conformité) et produit un **brouillon à relire**.
 
 ## 🗺️ Décisions à valider (hypothèses actuelles)
 

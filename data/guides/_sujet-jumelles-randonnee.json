@@ -1,0 +1,15 @@
+{
+  "_comment": "SQUELETTE à compléter — ASIN et prix à VÉRIFIER avant publication.",
+  "slug": "meilleures-jumelles-randonnee",
+  "title": "Les meilleures jumelles pour la randonnée culturelle en 2026",
+  "category": "Visite & patrimoine",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-28",
+  "author": "La rédaction Cultura Sabauda",
+  "products": [
+    { "id": "jumelles-8x42", "name": "Jumelles 8x42 toit étanches", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Jumelles+8x42", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "jumelles-10x42", "name": "Jumelles 10x42 grossissement élevé", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Jumelles+10x42", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "jumelles-compactes", "name": "Jumelles compactes 8x25 de voyage", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Jumelles+compactes", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } }
+  ]
+}

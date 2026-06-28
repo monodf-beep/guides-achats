@@ -1,0 +1,15 @@
+{
+  "_comment": "SQUELETTE à compléter — ASIN et prix à VÉRIFIER avant publication.",
+  "slug": "meilleur-materiel-dessin-debutant",
+  "title": "Le meilleur matériel de dessin pour débuter en 2026",
+  "category": "Beaux-arts & création",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-28",
+  "author": "La rédaction Cultura Sabauda",
+  "products": [
+    { "id": "carnet-croquis", "name": "Carnet de croquis à spirale 90 g/m²", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Carnet+croquis", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "crayons-graphite", "name": "Set de crayons graphite (HB à 8B)", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Crayons+graphite", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "feutres-aquarelle", "name": "Feutres à pointe pinceau aquarellables", "brand": "Marque", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Feutres+aquarelle", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } }
+  ]
+}

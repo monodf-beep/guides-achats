@@ -1,0 +1,15 @@
+{
+  "_comment": "SQUELETTE à compléter — ASIN et prix à VÉRIFIER avant publication. Lancez 'node src/ai/draft-guide.mjs data/guides/_sujet-meilleures-liseuses.json' pour générer le brouillon éditorial.",
+  "slug": "meilleures-liseuses",
+  "title": "Les meilleures liseuses pour lire partout en 2026",
+  "category": "Livres & lecture",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-28",
+  "author": "La rédaction Cultura Sabauda",
+  "products": [
+    { "id": "kindle-paperwhite", "name": "Amazon Kindle Paperwhite", "brand": "Amazon", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Kindle+Paperwhite", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "kobo-clara", "name": "Rakuten Kobo Clara", "brand": "Kobo", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Kobo+Clara", "affiliate": { "program": "amazon", "asin": "B0XXXXXXXX", "merchant": "Amazon" } },
+    { "id": "vivlio-color", "name": "Vivlio Color", "brand": "Vivlio", "price": "À VÉRIFIER", "image": "https://placehold.co/600x400?text=Vivlio+Color", "affiliate": { "program": "direct", "url": "https://exemple-marchand.fr/vivlio-color", "merchant": "la boutique" } }
+  ]
+}

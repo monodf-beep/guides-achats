@@ -26,7 +26,26 @@ DASHBOARD_TOKEN=secret npm run dashboard # accès via ?token=secret
 
 ## Déploiement sur le VPS
 
-### 1. Récupérer le code
+### Méthode rapide — script tout-en-un (recommandé)
+Installe Node si besoin, crée un utilisateur de service, le `.env`, un token, le service systemd
+et (si un domaine est passé) Nginx + HTTPS. Idempotent.
+
+```bash
+git clone -b claude/cultura-shopping-guide-tool-7osf4z \
+  https://github.com/monodf-beep/guides-achats /opt/guides-achats
+cd /opt/guides-achats
+
+# Sans domaine (écoute locale 127.0.0.1:8787) :
+sudo bash deploy/vps-setup.sh
+
+# Avec domaine → Nginx + HTTPS automatiques :
+sudo bash deploy/vps-setup.sh dashboard.culturasabauda.eu
+```
+À la fin, le script affiche l'URL d'accès et le token (aussi dans `.dashboard-token`).
+
+### Méthode manuelle (détaillée)
+
+#### 1. Récupérer le code
 ```bash
 git clone <url-du-depot> /opt/guides-achats
 cd /opt/guides-achats

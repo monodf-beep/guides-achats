@@ -397,7 +397,7 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
     <button onclick="saveSettings()">Enregistrer</button>
     <span id="setMsg" style="margin-left:12px;font-weight:600"></span>
   </div>
-  <div class="card" id="guides"><h2>Vos guides d'achat</h2>
+  <div class="card" id="guides-section"><h2>Vos guides d'achat</h2>
     <p class="lead">Un « guide » est un comparatif de produits que vous recommandez (ex. « Les meilleures liseuses »).
     Cliquez <strong>« ➕ Nouveau guide »</strong> (en haut) pour en créer un, <strong>« Modifier »</strong> pour
     le changer, <strong>« Générer »</strong> pour fabriquer la page, <strong>« Aperçu »</strong> pour la voir,
@@ -480,8 +480,8 @@ function renderParcours(d){
   var steps=[
     {done:(s.amazonConfigured||s.awinEnabled||s.trackerConfigured), t:'1. Configurer mes identifiants', w:'Pour que vos liens rapportent des commissions. À faire une fois.', label:'Ouvrir les réglages', act:'reglages'},
     {done:(d.guides||[]).some(function(g){return !g.draft;}), t:'2. Créer un guide', w:'Un comparatif des produits que vous recommandez.', label:'+ Nouveau guide', href:q('/editor')},
-    {done:(k.published>0), t:'3. Générer & prévisualiser', w:'Fabriquer la page et la voir avant de publier.', label:'Voir mes guides', act:'guides'},
-    {done:s.wpConfigured, t:'4. Publier sur le site', w:'Mettre le guide en ligne sur WordPress.', label:(s.wpConfigured?'Voir mes guides':'Connecter WordPress'), act:'guides'}
+    {done:(k.published>0), t:'3. Générer & prévisualiser', w:'Fabriquer la page et la voir avant de publier.', label:'Voir mes guides', act:'guides-section'},
+    {done:s.wpConfigured, t:'4. Publier sur le site', w:'Mettre le guide en ligne sur WordPress.', label:(s.wpConfigured?'Voir mes guides':'Connecter WordPress'), act:'guides-section'}
   ];
   var nextIdx=-1; for(var i=0;i<steps.length;i++){if(!steps[i].done){nextIdx=i;break;}}
   var html='<h2>👉 Par où commencer ?</h2><p class="lead" style="margin:0">Suivez ces 4 étapes dans l\\'ordre. L\\'étape encadrée en bleu est votre prochaine action.</p><div class="steps">';

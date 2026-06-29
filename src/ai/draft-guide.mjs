@@ -126,37 +126,23 @@ Contraintes :
 - Écris en français soigné, ton Cultura Sabauda (culturel, sérieux, accessible).`;
 }
 
-async function main() {
-  loadDotEnv(join(ROOT, ".env"));
-  const argv = process.argv.slice(2);
-  const file = argv.find((a) => a.endsWith(".json"));
-  const outIdx = argv.indexOf("--out");
-  if (!file) {
-    console.error("Usage : node src/ai/draft-guide.mjs <squelette.json> [--out <sortie.draft.json>]");
-    process.exit(1);
-  }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("❌ ANTHROPIC_API_KEY manquante (variable d'environnement ou .env).");
-    process.exit(1);
-  }
-
-  let Anthropic;
-  try {
-    ({ default: Anthropic } = await import("@anthropic-ai/sdk"));
-  } catch {
-    console.error("❌ SDK manquant. Installez-le : npm i @anthropic-ai/sdk");
-    process.exit(1);
-  }
-
-  const skeleton = JSON.parse(readFileSync(resolve(file), "utf8"));
+/**
+ * Rédige l'éditorial d'un guide avec Claude et le fusionne sur le squelette.
+ * Réutilisable par le tableau de bord. Nécessite ANTHROPIC_API_KEY dans l'environnement
+ * et le SDK @anthropic-ai/sdk installé.
+ * @param skeleton guide JSON avec au moins products[] (id, name, affiliate…)
+ * @returns le guide complet (brouillon, _draft:true) prêt à relire
+ */
+export async function draftGuideEditorial(skeleton) {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error("Clé API Claude manquante (Réglages ou .env).");
   if (!Array.isArray(skeleton.products) || !skeleton.products.length) {
-    console.error("❌ Le squelette doit contenir une liste 'products' (id, name, affiliate…).");
-    process.exit(1);
+    throw new Error("Le guide doit contenir au moins un produit (nom + lien).");
   }
+  let Anthropic;
+  try { ({ default: Anthropic } = await import("@anthropic-ai/sdk")); }
+  catch { throw new Error("SDK Claude manquant sur le serveur : npm i @anthropic-ai/sdk"); }
 
   const client = new Anthropic();
-  console.log(`✍️  Rédaction du guide « ${skeleton.title} » avec Claude…`);
-
   const response = await client.messages.create({
     model: "claude-opus-4-8",
     max_tokens: 16000,
@@ -164,23 +150,16 @@ async function main() {
     output_config: { format: { type: "json_schema", schema: EDITORIAL_SCHEMA } },
     messages: [{ role: "user", content: buildPrompt(skeleton) }],
   });
-
   if (response.stop_reason === "refusal") {
-    console.error("❌ Requête refusée par le modèle :", response.stop_details?.explanation || "(sans détail)");
-    process.exit(1);
+    throw new Error("Requête refusée par le modèle : " + (response.stop_details?.explanation || "sans détail"));
   }
-
   const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock) {
-    console.error("❌ Réponse vide du modèle.");
-    process.exit(1);
-  }
+  if (!textBlock) throw new Error("Réponse vide du modèle.");
   const editorial = JSON.parse(textBlock.text);
 
-  // Fusion : on greffe l'éditorial sur le squelette, en conservant les données humaines
-  // (asin/url/price/affiliate) intactes. Les champs par produit sont fusionnés par id.
+  // Fusion : éditorial greffé sur le squelette, données humaines (asin/url/price) intactes.
   const byId = Object.fromEntries((editorial.products || []).map((p) => [p.id, p]));
-  const merged = {
+  return {
     ...skeleton,
     intro: editorial.intro,
     methodology: editorial.methodology,
@@ -199,12 +178,25 @@ async function main() {
     })),
     _draft: true,
   };
-
-  const outPath = outIdx !== -1 ? resolve(argv[outIdx + 1]) : resolve(file).replace(/\.json$/, ".draft.json");
-  writeFileSync(outPath, JSON.stringify(merged, null, 2));
-  console.log(`✅ Brouillon écrit : ${outPath}`);
-  console.log(`   ⚠️  À RELIRE avant publication (checklists docs/02 et docs/03).`);
-  console.log(`   Tokens : ${response.usage.input_tokens} entrée / ${response.usage.output_tokens} sortie.`);
 }
 
-main().catch((e) => { console.error("❌", e.message); process.exit(1); });
+async function main() {
+  loadDotEnv(join(ROOT, ".env"));
+  const argv = process.argv.slice(2);
+  const file = argv.find((a) => a.endsWith(".json"));
+  const outIdx = argv.indexOf("--out");
+  if (!file) {
+    console.error("Usage : node src/ai/draft-guide.mjs <squelette.json> [--out <sortie.draft.json>]");
+    process.exit(1);
+  }
+  const skeleton = JSON.parse(readFileSync(resolve(file), "utf8"));
+  console.log(`✍️  Rédaction du guide « ${skeleton.title} » avec Claude…`);
+  const merged = await draftGuideEditorial(skeleton);
+  const outPath = outIdx !== -1 ? resolve(argv[outIdx + 1]) : resolve(file).replace(/\.json$/, ".draft.json");
+  writeFileSync(outPath, JSON.stringify(merged, null, 2));
+  console.log(`✅ Brouillon écrit : ${outPath}\n   ⚠️  À RELIRE avant publication (docs/02 et docs/03).`);
+}
+
+if (process.argv[1] && process.argv[1].endsWith("draft-guide.mjs")) {
+  main().catch((e) => { console.error("❌", e.message); process.exit(1); });
+}

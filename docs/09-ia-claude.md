@@ -45,6 +45,20 @@ node src/generate.mjs data/guides/meilleures-liseuses.json
 - Fusion : l'éditorial est greffé sur le squelette, les données humaines (affiliate/price) restent
   intactes ; chaque produit est fusionné par `id`.
 
+## Depuis le tableau de bord (sans ligne de commande)
+
+Tout est pilotable depuis le dashboard, une fois la **clé API Claude** saisie dans
+**⚙️ Réglages** (stockée sur le serveur, jamais sur GitHub) :
+
+- **🔎 SEO « Recherche web (IA) »** : Claude (`claude-opus-4-8`) utilise l'outil
+  **web_search** pour aller chercher en ligne les vraies intentions d'achat, et renvoie
+  titres de guide, mots-clés par intention et idées de produits réels.
+- **🤖 Rédiger** (sur chaque guide) : Claude rédige tout l'éditorial (intro, critères,
+  avis, points forts/faibles, FAQ…) à partir des produits saisis. **Il ne touche jamais
+  aux liens/ASIN/prix** que vous avez renseignés. Résultat à relire via « Modifier ».
+
+Prérequis serveur (une fois) : `npm i @anthropic-ai/sdk` dans `/opt/guides-achats`.
+
 ## Pistes d'extension IA (plus tard)
 
 - **Idéation** : Claude propose des sujets à partir des briefs SEO (`src/seo/intent.mjs`).

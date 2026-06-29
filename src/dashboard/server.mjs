@@ -25,6 +25,8 @@ import { resolveConfig } from "../lib/affiliate.mjs";
 import { buildIntentMatrix, suggestTitles } from "../seo/intent.mjs";
 import { rankGuides } from "../seo/recommend.mjs";
 import { publishGuideToWordPress, wpConfigured } from "../publish-wordpress.mjs";
+import { draftGuideEditorial } from "../ai/draft-guide.mjs";
+import { researchSeo } from "../ai/seo-research.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..", "..");
@@ -64,6 +66,7 @@ function loadConfig() {
   if (s.amazonTag) { cfg.amazon = cfg.amazon || {}; cfg.amazon.partnerTag = s.amazonTag; }
   if (s.awinAffiliateId) { cfg.awin = cfg.awin || {}; cfg.awin.affiliateId = s.awinAffiliateId; cfg.awin.enabled = true; }
   if (s.trackerBase) { cfg.tracker = cfg.tracker || {}; cfg.tracker.base = s.trackerBase; }
+  if (s.aiApiKey) process.env.ANTHROPIC_API_KEY = s.aiApiKey; // clé IA saisie dans le dashboard
   return cfg;
 }
 
@@ -248,7 +251,11 @@ const server = createServer((req, res) => {
   }
 
   if (url.pathname === "/api/settings") {
-    if (req.method === "GET") return json(res, 200, { settings: loadSettings() });
+    if (req.method === "GET") {
+      const s = loadSettings();
+      // On ne renvoie JAMAIS la clé API en clair, seulement si elle est définie.
+      return json(res, 200, { settings: { amazonTag: s.amazonTag || "", awinAffiliateId: s.awinAffiliateId || "", trackerBase: s.trackerBase || "", aiKeySet: !!s.aiApiKey } });
+    }
     if (req.method === "POST") {
       let body = "";
       req.on("data", (c) => (body += c));
@@ -259,11 +266,41 @@ const server = createServer((req, res) => {
           if (p.amazonTag !== undefined) clean.amazonTag = String(p.amazonTag).trim();
           if (p.awinAffiliateId !== undefined) clean.awinAffiliateId = String(p.awinAffiliateId).trim();
           if (p.trackerBase !== undefined) clean.trackerBase = String(p.trackerBase).trim().replace(/\/$/, "");
-          return json(res, 200, { ok: true, settings: saveSettings(clean) });
+          // clé API : enregistrée seulement si non vide (évite d'effacer par mégarde)
+          if (p.aiApiKey) clean.aiApiKey = String(p.aiApiKey).trim();
+          saveSettings(clean);
+          return json(res, 200, { ok: true });
         } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
       });
       return;
     }
+  }
+
+  if (url.pathname === "/api/ai/seo" && req.method === "POST") {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", async () => {
+      try {
+        const { kw } = JSON.parse(body || "{}");
+        if (!kw) throw new Error("Mot-clé requis");
+        const r = await researchSeo(kw);
+        return json(res, 200, { ok: true, ...r });
+      } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+    });
+    return;
+  }
+
+  if (url.pathname === "/api/ai/draft" && req.method === "POST") {
+    (async () => {
+      try {
+        const guide = readGuideBySlug(url.searchParams.get("slug"));
+        const merged = await draftGuideEditorial(guide);
+        delete merged._draft; // utilisable tout de suite ; la relecture se fait avant publication
+        writeFileSync(join(GUIDES_DIR, `${merged.slug}.json`), JSON.stringify(merged, null, 2));
+        return json(res, 200, { ok: true, slug: merged.slug });
+      } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+    })();
+    return;
   }
 
   if (url.pathname === "/api/guide") {
@@ -396,6 +433,8 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
         <p class="help">Votre numéro d'éditeur Awin (pour Fnac, Decathlon, Cultura…). Facultatif au début.</p></div>
       <div><label>Adresse de ce tableau de bord</label><input id="setTracker" placeholder="https://dashboard.culturasabauda.eu">
         <p class="help">Sert à compter les clics vers vos partenaires locaux. Recopiez simplement l'adresse affichée dans votre navigateur.</p></div>
+      <div><label>Clé IA (Claude) — pour la rédaction et le SEO web</label><input id="setAi" type="password" placeholder="sk-ant-...">
+        <p class="help">Permet à l'outil de rechercher le SEO sur le web et de rédiger vos guides. Obtenue sur console.anthropic.com. Stockée sur le serveur, jamais sur GitHub.</p></div>
     </div>
     <button onclick="saveSettings()">Enregistrer</button>
     <span id="setMsg" style="margin-left:12px;font-weight:600"></span>
@@ -409,8 +448,8 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
   <details class="card"><summary style="cursor:pointer;font-weight:700;font-size:1.02rem">🛠️ Outils avancés (facultatif) — SEO &amp; recommandation</summary>
     <p class="help" style="margin:8px 0 0">Optionnel. Pour trouver des idées de sujets (SEO) et tester les recommandations par profil. Vous pouvez ignorer au début.</p>
     <div style="margin-top:14px"><h3 class="mini">🔎 Trouver des idées de sujets (SEO)</h3>
-      <p class="help" style="margin:0 0 6px">Tapez un produit : l'outil propose des titres de guide (cliquez « Créer ce guide ») et les mots-clés que les gens tapent sur Google (à réutiliser dans votre texte).</p>
-      <div class="row"><input id="kw" placeholder="ex. ballon de foot"><button onclick="seo()">Trouver des idées</button></div>
+      <p class="help" style="margin:0 0 6px">Tapez un produit. <strong>« Idées rapides »</strong> = suggestions instantanées. <strong>« 🤖 Recherche web »</strong> = Claude va chercher en ligne les vraies tendances (nécessite la clé IA dans les Réglages).</p>
+      <div class="row"><input id="kw" placeholder="ex. ballon de foot"><button class="alt" onclick="seo()">Idées rapides</button><button onclick="seoAI()">🤖 Recherche web (IA)</button></div>
       <div id="seoOut" hidden style="margin-top:12px"></div></div>
     <div style="margin-top:14px"><h3 class="mini">🎯 Recommandation par profil</h3>
       <p class="help" style="margin:0 0 6px">Entrez des centres d'intérêt : l'outil classe vos guides existants par pertinence (utile pour « Nos guides pour vous »).</p>
@@ -464,7 +503,7 @@ async function load(){
   document.getElementById('kpis').innerHTML = [
     ['Guides',k.guides],['Publiés',k.published],['Brouillons',k.drafts],['Produits',k.products],['Clics affiliés',k.clicks],['Revenus €',k.revenueTotal.toFixed(2)]
   ].map(([l,v])=>'<div class="kpi"><b>'+v+'</b>'+l+'</div>').join('');
-  const s=d.status; window.WP = s.wpConfigured;
+  const s=d.status; window.WP = s.wpConfigured; window.AI = s.aiConfigured;
   document.getElementById('status').innerHTML =
     pill('Amazon Partenaires', s.amazonConfigured) + pill('Awin', s.awinEnabled) +
     pill('WordPress', s.wpConfigured) + pill('IA / Claude', s.aiConfigured) +
@@ -472,9 +511,10 @@ async function load(){
   document.querySelector('#guides tbody').innerHTML = d.guides.map(g=>{
     const st = g.draft?'<span class="badge b-draft">brouillon</span>':(g.generated?'<span class="badge b-ok">généré</span>':'<span class="badge b-no">à générer</span>');
     const wpBtn = (g.generated && window.WP) ? ' <button onclick="pubwp(\\''+g.slug+'\\')">→ WP</button>' : '';
+    const aiBtn = window.AI ? ' <button onclick="aidraft(\\''+g.slug+'\\')">🤖 Rédiger</button>' : '';
     const edit = '<a href="'+q('/editor?slug='+encodeURIComponent(g.slug))+'"><button class="alt">Modifier</button></a> ';
-    const act = edit + (g.draft? '<small>complétez puis générez</small>' :
-      '<button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'')+wpBtn);
+    const act = edit + aiBtn + (g.draft? ' <small>complétez puis générez</small>' :
+      ' <button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'')+wpBtn);
     return '<tr><td>'+g.title+'</td><td>'+g.category+'</td><td>'+g.products+'</td><td>'+st+'</td><td>'+act+'</td></tr>';
   }).join('');
 }
@@ -504,16 +544,41 @@ function renderParcours(d){
   document.getElementById('parcours').innerHTML=html;
 }
 async function gen(slug){const r=await (await fetch(q('/api/generate?slug='+encodeURIComponent(slug)),{method:'POST'})).json();alert(r.ok?'Généré : '+r.slug+' ('+r.products+' produits)':'Erreur : '+r.error);load();}
+async function aidraft(slug){
+  if(!confirm('Laisser Claude rédiger tout le contenu de ce guide ?\\n(Vos liens/prix ne sont pas modifiés. À relire avant publication.)'))return;
+  var r=await (await fetch(q('/api/ai/draft?slug='+encodeURIComponent(slug)),{method:'POST'})).json();
+  if(r.ok){alert('✅ Contenu rédigé par l\\'IA. Cliquez « Modifier » pour relire, puis « Générer ».');load();}
+  else{alert('⚠️ '+r.error+'\\n\\n(La clé IA doit être renseignée dans les Réglages, et le SDK installé sur le serveur.)');}
+}
 async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en BROUILLON ?'))return;const r=await (await fetch(q('/api/publish-wp?slug='+encodeURIComponent(slug)),{method:'POST'})).json();if(r.ok){if(confirm((r.created?'Brouillon créé':'Article mis à jour')+' sur WP (statut '+r.status+').\\nOuvrir l\\'article ?'))window.open(r.link,'_blank');}else alert('Erreur : '+r.error);}
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setSeo(html){var o=document.getElementById('seoOut');o.hidden=false;o.innerHTML=html;}
+function renderSeoResult(r){
+  var h='';
+  if(r.angle) h+='<div class="owe"><strong>Angle conseillé :</strong> '+escapeHtml(r.angle)+'</div>';
+  h+='<h3 class="mini">Titres de guide suggérés</h3><ul class="reslist">';
+  (r.titles||[]).forEach(function(t){h+='<li>'+escapeHtml(t)+' <a href="'+q('/editor?title='+encodeURIComponent(t))+'"><button class="alt">Créer ce guide</button></a></li>';});
+  h+='</ul>';
+  var groups=r.keywords||(r.matrix?Object.keys(r.matrix).map(function(k){return r.matrix[k];}):[]);
+  if(groups&&groups.length){h+='<h3 class="mini">Mots-clés que les gens recherchent</h3>';
+    groups.forEach(function(b){h+='<p style="margin:8px 0 2px"><strong>'+escapeHtml(b.label)+'</strong></p><div>'+(b.queries||[]).map(function(qy){return '<span class="chip">'+escapeHtml(qy)+'</span>';}).join('')+'</div>';});}
+  if(r.products&&r.products.length){h+='<h3 class="mini">Idées de produits à comparer</h3><ul class="reslist">'+r.products.map(function(p){return '<li><strong>'+escapeHtml(p.name)+'</strong>'+(p.brand?' <small>('+escapeHtml(p.brand)+')</small>':'')+(p.why?' — '+escapeHtml(p.why):'')+'</li>';}).join('')+'</ul>';}
+  return h;
+}
 async function seo(){
   var kw=document.getElementById('kw').value.trim(); if(!kw)return;
+  setSeo('Recherche…');
   var r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();
-  var h='<h3 class="mini">Titres de guide suggérés</h3><ul class="reslist">';
-  (r.titles||[]).forEach(function(t){h+='<li>'+escapeHtml(t)+' <a href="'+q('/editor?title='+encodeURIComponent(t))+'"><button class="alt">Créer ce guide</button></a></li>';});
-  h+='</ul><h3 class="mini">Mots-clés que les gens recherchent</h3>';
-  Object.keys(r.matrix||{}).forEach(function(k){var b=r.matrix[k];h+='<p style="margin:8px 0 2px"><strong>'+escapeHtml(b.label)+'</strong></p><div>'+(b.queries||[]).map(function(qy){return '<span class="chip">'+escapeHtml(qy)+'</span>';}).join('')+'</div>';});
-  var o=document.getElementById('seoOut');o.hidden=false;o.innerHTML=h;
+  setSeo(renderSeoResult(r));
+}
+async function seoAI(){
+  var kw=document.getElementById('kw').value.trim(); if(!kw)return;
+  setSeo('🤖 Recherche web en cours (cela peut prendre 30 à 60 secondes)…');
+  try{
+    var r=await (await fetch(q('/api/ai/seo'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kw:kw})})).json();
+    if(!r.ok)throw new Error(r.error);
+    setSeo(renderSeoResult(r));
+  }catch(e){setSeo('⚠️ '+e.message+'<br><span class="help">Vérifiez que la clé IA est renseignée dans les Réglages.</span>');}
 }
 async function reco(){
   var i=document.getElementById('interests').value;
@@ -523,8 +588,8 @@ async function reco(){
   var o=document.getElementById('recoOut');o.hidden=false;o.innerHTML=h;
 }
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}
-async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';}
-async function saveSettings(){const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;load();}
+async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';document.getElementById('setAi').placeholder=s.aiKeySet?'•••••• (clé enregistrée — laisser vide pour garder)':'sk-ant-...';}
+async function saveSettings(){const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};if(setAi.value)body.aiApiKey=setAi.value;const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;setAi.value='';load();}
 load();
 </script></body></html>`;
 

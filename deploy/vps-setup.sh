@@ -37,6 +37,12 @@ if [ "$NEED_NODE" -eq 1 ]; then
 fi
 NODE_BIN="$(command -v node)"
 
+# 1b. SDK IA (facultatif) — active la recherche SEO web et la rédaction par Claude
+log "Dépendance IA (@anthropic-ai/sdk)"
+( cd "$REPO_DIR" && npm install --no-audit --no-fund @anthropic-ai/sdk >/dev/null 2>&1 ) \
+  && echo "SDK IA installé." \
+  || echo "⚠️  SDK IA non installé (réseau ?). L'IA restera inactive jusqu'à : (cd $REPO_DIR && npm i @anthropic-ai/sdk)"
+
 # 2. Utilisateur système dédié + permissions
 log "Utilisateur de service ($SERVICE_USER)"
 id -u "$SERVICE_USER" >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin "$SERVICE_USER"

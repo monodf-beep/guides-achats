@@ -1,5 +1,8 @@
 # 06 — Roadmap
 
+> 👉 Pour l'**état d'avancement à jour** (ce qu'on veut faire, les étapes, où on en est),
+> voir [ETAT-DU-PROJET.md](ETAT-DU-PROJET.md).
+
 ## Phase 0 — Cadrage (✅ fait dans ce dépôt)
 
 - [x] Analyse du modèle Le Monde / Guides d'achat
@@ -11,6 +14,8 @@
 ## Phase 1 — Décisions & lancement (à valider avec l'équipe)
 
 - [x] **Plateforme de publication tranchée : WordPress** (publication manuelle immédiate, API REST en phase 2)
+- [x] **Tableau de bord déployé sur le VPS** (Node 20, service systemd actif, API vérifiée)
+- [ ] **DNS + HTTPS** du dashboard (sous-domaine `dashboard.culturasabauda.eu`)
 - [ ] Créer/valider les **comptes d'affiliation** (Amazon Partenaires en priorité)
 - [ ] Définir la **thématique** et la ligne éditoriale (niche culture/patrimoine recommandée)
 - [ ] Publier la page **« Politique d'affiliation »** et les mentions légales

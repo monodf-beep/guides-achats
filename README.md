@@ -1,5 +1,8 @@
 # Guides d'achat — Cultura Sabauda
 
+> 📍 **État d'avancement du projet** (objectif, étapes, où on en est) : [docs/ETAT-DU-PROJET.md](docs/ETAT-DU-PROJET.md)
+
+
 Outil et cadre éditorial pour **publier des guides d'achat affiliés** (à la manière des
 [Guides d'achat du Monde](https://www.lemonde.fr/guides-d-achat/)) et générer des **commissions
 d'affiliation**, au service du financement des projets de Cultura Sabauda.

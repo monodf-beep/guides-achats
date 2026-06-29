@@ -151,6 +151,22 @@ function configStatus(config) {
   };
 }
 
+// Traduit les erreurs de l'API Claude en messages clairs (clé, crédit, quota…)
+function aiError(e) {
+  const msg = e && e.message ? String(e.message) : String(e);
+  const low = msg.toLowerCase();
+  const status = e && e.status;
+  if (/credit balance|insufficient|billing|quota/.test(low))
+    return "Crédit API Claude épuisé (ou facturation à vérifier). Rechargez votre compte sur console.anthropic.com → Billing.";
+  if (status === 401 || /invalid x-api-key|authentication_error/.test(low))
+    return "Clé API Claude invalide. Recollez-la dans ⚙️ Réglages (elle commence par « sk-ant- », sans espace avant/après), puis Enregistrer.";
+  if (status === 429 || /rate_limit|overloaded/.test(low))
+    return "Trop de requêtes d'affilée (ou service surchargé). Réessayez dans une minute.";
+  if (status === 403) return "Accès refusé : clé sans permission, ou facturation à activer sur console.anthropic.com.";
+  if (status >= 500) return "Service IA momentanément indisponible. Réessayez dans un instant.";
+  return msg;
+}
+
 const json = (res, code, obj) => {
   res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(obj));
@@ -285,7 +301,7 @@ const server = createServer((req, res) => {
         if (!kw) throw new Error("Mot-clé requis");
         const r = await researchSeo(kw);
         return json(res, 200, { ok: true, ...r });
-      } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+      } catch (e) { return json(res, 400, { ok: false, error: aiError(e) }); }
     });
     return;
   }
@@ -298,7 +314,7 @@ const server = createServer((req, res) => {
         delete merged._draft; // utilisable tout de suite ; la relecture se fait avant publication
         writeFileSync(join(GUIDES_DIR, `${merged.slug}.json`), JSON.stringify(merged, null, 2));
         return json(res, 200, { ok: true, slug: merged.slug });
-      } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+      } catch (e) { return json(res, 400, { ok: false, error: aiError(e) }); }
     })();
     return;
   }
@@ -548,7 +564,7 @@ async function aidraft(slug){
   if(!confirm('Laisser Claude rédiger tout le contenu de ce guide ?\\n(Vos liens/prix ne sont pas modifiés. À relire avant publication.)'))return;
   var r=await (await fetch(q('/api/ai/draft?slug='+encodeURIComponent(slug)),{method:'POST'})).json();
   if(r.ok){alert('✅ Contenu rédigé par l\\'IA. Cliquez « Modifier » pour relire, puis « Générer ».');load();}
-  else{alert('⚠️ '+r.error+'\\n\\n(La clé IA doit être renseignée dans les Réglages, et le SDK installé sur le serveur.)');}
+  else{alert('⚠️ '+r.error);}
 }
 async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en BROUILLON ?'))return;const r=await (await fetch(q('/api/publish-wp?slug='+encodeURIComponent(slug)),{method:'POST'})).json();if(r.ok){if(confirm((r.created?'Brouillon créé':'Article mis à jour')+' sur WP (statut '+r.status+').\\nOuvrir l\\'article ?'))window.open(r.link,'_blank');}else alert('Erreur : '+r.error);}
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -578,7 +594,7 @@ async function seoAI(){
     var r=await (await fetch(q('/api/ai/seo'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kw:kw})})).json();
     if(!r.ok)throw new Error(r.error);
     setSeo(renderSeoResult(r));
-  }catch(e){setSeo('⚠️ '+e.message+'<br><span class="help">Vérifiez que la clé IA est renseignée dans les Réglages.</span>');}
+  }catch(e){setSeo('⚠️ '+e.message);}
 }
 async function reco(){
   var i=document.getElementById('interests').value;

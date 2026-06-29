@@ -141,6 +141,7 @@ function configStatus(config) {
     amazonConfigured: !!tag && !/REMPLACER|monidentifiant/i.test(tag),
     amazonTag: tag,
     awinEnabled: !!config.awin?.enabled,
+    trackerConfigured: !!config.tracker?.base,
     site: config.site?.baseUrl || "",
     wpConfigured: !!process.env.WP_BASE_URL && !!process.env.WP_APP_PASSWORD,
     aiConfigured: !!process.env.ANTHROPIC_API_KEY,
@@ -361,12 +362,27 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
 .flow .step b{display:block;margin-bottom:2px}
 .flow .arrow{display:flex;align-items:center;color:#999;font-size:1.3rem}
 .owe{background:#eaf6ee;border:1px solid #bfe3cc;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:.9rem}
+.hero{background:linear-gradient(180deg,#fff, #f4f8fd);border:1px solid #cfe0f3}
+.hero h2{margin:0 0 4px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:12px}
+.stepcard{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff;position:relative;display:flex;flex-direction:column;gap:6px}
+.stepcard .num{width:26px;height:26px;border-radius:50%;background:#dde6f2;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.stepcard.next{border:2px solid var(--accent);box-shadow:0 2px 10px rgba(26,77,143,.12)}
+.stepcard.next .num{background:var(--accent);color:#fff}
+.stepcard.done{background:#f3faf5;border-color:#bfe3cc}
+.stepcard.done .num{background:var(--ok);color:#fff}
+.stepcard .t{font-weight:700;font-size:.95rem}
+.stepcard .w{font-size:.82rem;color:#666;flex:1}
+.stepcard button,.stepcard a button{width:100%}
+.stepcard .state{font-size:.78rem;font-weight:700}
+.muted button{background:#fff;color:var(--accent);border:1px solid var(--accent)}
 </style></head><body>
 <header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><nav><a id="newLink" href="/editor">➕ Nouveau guide</a> <a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></nav></header>
 <main>
+  <div class="card hero" id="parcours"></div>
   <div class="kpis" id="kpis"></div>
   <div class="card"><h2>État de la configuration</h2><div class="status" id="status"></div></div>
-  <div class="card"><h2>⚙️ Réglages — vos identifiants d'affiliation</h2>
+  <div class="card" id="reglages"><h2>⚙️ Réglages — vos identifiants d'affiliation</h2>
     <p class="lead">À quoi ça sert : ces identifiants permettent à l'outil de transformer
     automatiquement les liens de vos guides en liens d'affiliation, pour que les achats vous
     rapportent une commission. <strong>À remplir une seule fois</strong>, puis « Enregistrer ».</p>
@@ -381,18 +397,21 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
     <button onclick="saveSettings()">Enregistrer</button>
     <span id="setMsg" style="margin-left:12px;font-weight:600"></span>
   </div>
-  <div class="card"><h2>Vos guides d'achat</h2>
+  <div class="card" id="guides"><h2>Vos guides d'achat</h2>
     <p class="lead">Un « guide » est un comparatif de produits que vous recommandez (ex. « Les meilleures liseuses »).
     Cliquez <strong>« ➕ Nouveau guide »</strong> (en haut) pour en créer un, <strong>« Modifier »</strong> pour
     le changer, <strong>« Générer »</strong> pour fabriquer la page, <strong>« Aperçu »</strong> pour la voir,
     puis <strong>« → WP »</strong> pour la publier sur le site.</p>
     <table id="guides"><thead><tr><th>Titre</th><th>Catégorie</th><th>Produits</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
-  <div class="card"><h2>🔎 Intentions d'achat (SEO)</h2>
-    <div class="row"><input id="kw" placeholder="ex. liseuse"><button onclick="seo()">Analyser</button></div>
-    <pre id="seoOut" hidden></pre></div>
-  <div class="card"><h2>🎯 Recommandation par profil</h2>
-    <div class="row"><input id="interests" placeholder="ex. Livres & lecture, Maison" style="flex:1"><button onclick="reco()">Recommander</button></div>
-    <pre id="recoOut" hidden></pre></div>
+  <details class="card"><summary style="cursor:pointer;font-weight:700;font-size:1.02rem">🛠️ Outils avancés (facultatif) — SEO &amp; recommandation</summary>
+    <p class="help" style="margin:8px 0 0">Optionnel. Pour trouver des idées de sujets (SEO) et tester les recommandations par profil. Vous pouvez ignorer au début.</p>
+    <div style="margin-top:14px"><h3 class="mini">🔎 Trouver des idées de sujets (SEO)</h3>
+      <div class="row"><input id="kw" placeholder="ex. liseuse"><button onclick="seo()">Analyser</button></div>
+      <pre id="seoOut" hidden></pre></div>
+    <div style="margin-top:14px"><h3 class="mini">🎯 Recommandation par profil</h3>
+      <div class="row"><input id="interests" placeholder="ex. Livres & lecture, Maison" style="flex:1"><button onclick="reco()">Recommander</button></div>
+      <pre id="recoOut" hidden></pre></div>
+  </details>
   <div class="card"><h2>💶 Suivi des revenus (manuel)</h2>
     <div class="row"><input id="rMonth" placeholder="2026-06" size="8"><input id="rProg" placeholder="Amazon"><input id="rAmt" placeholder="0.00" size="6"><button onclick="addRev()">Ajouter</button></div>
     <pre id="revOut" hidden></pre></div>
@@ -435,6 +454,7 @@ async function load(){
   document.getElementById('newLink').href = q('/editor');
   loadSettings();
   const d = await (await fetch(q('/api/overview'))).json();
+  renderParcours(d);
   const k = d.kpis;
   document.getElementById('kpis').innerHTML = [
     ['Guides',k.guides],['Publiés',k.published],['Brouillons',k.drafts],['Produits',k.products],['Clics affiliés',k.clicks],['Revenus €',k.revenueTotal.toFixed(2)]
@@ -454,6 +474,30 @@ async function load(){
   }).join('');
 }
 function pill(l,ok){return '<span><span class="badge '+(ok?'b-ok':'b-no')+'">'+(ok?'OK':'à faire')+'</span> '+l+'</span>';}
+function go(id){var e=document.getElementById(id); if(e){e.scrollIntoView({behavior:'smooth',block:'start'});}}
+function renderParcours(d){
+  var k=d.kpis, s=d.status;
+  var steps=[
+    {done:(s.amazonConfigured||s.awinEnabled||s.trackerConfigured), t:'1. Configurer mes identifiants', w:'Pour que vos liens rapportent des commissions. À faire une fois.', label:'Ouvrir les réglages', act:'reglages'},
+    {done:(d.guides||[]).some(function(g){return !g.draft;}), t:'2. Créer un guide', w:'Un comparatif des produits que vous recommandez.', label:'+ Nouveau guide', href:q('/editor')},
+    {done:(k.published>0), t:'3. Générer & prévisualiser', w:'Fabriquer la page et la voir avant de publier.', label:'Voir mes guides', act:'guides'},
+    {done:s.wpConfigured, t:'4. Publier sur le site', w:'Mettre le guide en ligne sur WordPress.', label:(s.wpConfigured?'Voir mes guides':'Connecter WordPress'), act:'guides'}
+  ];
+  var nextIdx=-1; for(var i=0;i<steps.length;i++){if(!steps[i].done){nextIdx=i;break;}}
+  var html='<h2>👉 Par où commencer ?</h2><p class="lead" style="margin:0">Suivez ces 4 étapes dans l\\'ordre. L\\'étape encadrée en bleu est votre prochaine action.</p><div class="steps">';
+  steps.forEach(function(x,i){
+    var cls=x.done?'done':(i===nextIdx?'next':'');
+    var lbl=x.done?'Fait ✓':(i===nextIdx?'À faire maintenant':'À venir');
+    var btnCls=x.done?' class="alt"':'';
+    var btn=x.href?('<a href="'+x.href+'"><button'+btnCls+'>'+x.label+'</button></a>')
+                  :('<button'+btnCls+' onclick="go(\\''+x.act+'\\')">'+x.label+'</button>');
+    html+='<div class="stepcard '+cls+'"><div class="num">'+(x.done?'✓':(i+1))+'</div>'+
+          '<div class="t">'+x.t+'</div><div class="w">'+x.w+'</div>'+
+          '<div class="state" style="color:'+(x.done?'#1b8a3a':(i===nextIdx?'#b06a00':'#999'))+'">'+lbl+'</div>'+btn+'</div>';
+  });
+  html+='</div>';
+  document.getElementById('parcours').innerHTML=html;
+}
 async function gen(slug){const r=await (await fetch(q('/api/generate?slug='+encodeURIComponent(slug)),{method:'POST'})).json();alert(r.ok?'Généré : '+r.slug+' ('+r.products+' produits)':'Erreur : '+r.error);load();}
 async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en BROUILLON ?'))return;const r=await (await fetch(q('/api/publish-wp?slug='+encodeURIComponent(slug)),{method:'POST'})).json();if(r.ok){if(confirm((r.created?'Brouillon créé':'Article mis à jour')+' sur WP (statut '+r.status+').\\nOuvrir l\\'article ?'))window.open(r.link,'_blank');}else alert('Erreur : '+r.error);}
 async function seo(){const kw=document.getElementById('kw').value;if(!kw)return;const r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();const o=document.getElementById('seoOut');o.hidden=false;o.textContent=JSON.stringify(r,null,2);}

@@ -41,6 +41,8 @@ NODE_BIN="$(command -v node)"
 log "Utilisateur de service ($SERVICE_USER)"
 id -u "$SERVICE_USER" >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin "$SERVICE_USER"
 chown -R "$SERVICE_USER":"$SERVICE_USER" "$REPO_DIR"
+# Évite le blocage « dubious ownership » de git (repo possédé par $SERVICE_USER, git lancé en root)
+git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
 
 # 3. .env + token du dashboard
 log "Configuration (.env + token)"

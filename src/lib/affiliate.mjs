@@ -114,6 +114,7 @@ export function resolveConfig(fileConfig, env = process.env) {
   if (env.AWIN_AFFILIATE_ID) {
     cfg.awin = cfg.awin || {};
     cfg.awin.affiliateId = env.AWIN_AFFILIATE_ID;
+    cfg.awin.enabled = true; // activer Awin dès que l'ID est dans .env (survit aux git reset)
   }
   if (env.SITE_BASE_URL) {
     cfg.site = cfg.site || {};

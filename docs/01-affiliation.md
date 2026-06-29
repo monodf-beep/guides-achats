@@ -23,7 +23,9 @@ et de la configuration `config/affiliation.json` (surchargée par les variables 
 
 - **Inscription** : https://www.awin.com (validation requise, parfois frais d'entrée remboursés).
 - **Identifiant** : un *affiliate ID* éditeur (numérique).
-- **Configuration** : `AWIN_AFFILIATE_ID` ou `config/affiliation.json` → `awin.affiliateId`, puis `awin.enabled = true`.
+- **Configuration** : il suffit de définir `AWIN_AFFILIATE_ID` dans `.env` — cela renseigne
+  l'identifiant **et active Awin automatiquement** (pas besoin de toucher au `config/affiliation.json`
+  versionné, donc rien à ré-appliquer après un `git reset --hard`).
 - **Champ produit** :
   ```json
   "affiliate": { "program": "awin", "url": "https://www.fnac.com/...", "awinMerchantId": "12345" }

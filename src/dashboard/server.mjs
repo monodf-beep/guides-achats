@@ -292,6 +292,21 @@ const server = createServer((req, res) => {
     }
   }
 
+  if (url.pathname === "/api/ai/test") {
+    (async () => {
+      try {
+        if (!process.env.ANTHROPIC_API_KEY) throw new Error("Aucune clé enregistrée.");
+        let Anthropic;
+        try { ({ default: Anthropic } = await import("@anthropic-ai/sdk")); }
+        catch { throw new Error("SDK Claude manquant sur le serveur : npm i @anthropic-ai/sdk"); }
+        const client = new Anthropic();
+        const m = await client.models.retrieve("claude-opus-4-8"); // gratuit : valide la clé sans consommer de crédit
+        return json(res, 200, { ok: true, model: m.display_name || m.id });
+      } catch (e) { return json(res, 400, { ok: false, error: aiError(e) }); }
+    })();
+    return;
+  }
+
   if (url.pathname === "/api/ai/seo" && req.method === "POST") {
     let body = "";
     req.on("data", (c) => (body += c));
@@ -450,7 +465,9 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
       <div><label>Adresse de ce tableau de bord</label><input id="setTracker" placeholder="https://dashboard.culturasabauda.eu">
         <p class="help">Sert à compter les clics vers vos partenaires locaux. Recopiez simplement l'adresse affichée dans votre navigateur.</p></div>
       <div><label>Clé IA (Claude) — pour la rédaction et le SEO web</label><input id="setAi" type="password" placeholder="sk-ant-...">
-        <p class="help">Permet à l'outil de rechercher le SEO sur le web et de rédiger vos guides. Obtenue sur console.anthropic.com. Stockée sur le serveur, jamais sur GitHub.</p></div>
+        <p class="help">Permet de rechercher le SEO sur le web et de rédiger vos guides. Obtenue sur console.anthropic.com. Stockée sur le serveur, jamais sur GitHub.</p>
+        <p id="aiKeyState" style="font-size:.85rem;margin:4px 0 0"></p>
+        <button class="alt" onclick="testAi()" style="margin-top:6px;padding:5px 12px">Tester la clé</button></div>
     </div>
     <button onclick="saveSettings()">Enregistrer</button>
     <span id="setMsg" style="margin-left:12px;font-weight:600"></span>
@@ -604,8 +621,9 @@ async function reco(){
   var o=document.getElementById('recoOut');o.hidden=false;o.innerHTML=h;
 }
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}
-async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';document.getElementById('setAi').placeholder=s.aiKeySet?'•••••• (clé enregistrée — laisser vide pour garder)':'sk-ant-...';}
-async function saveSettings(){const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};if(setAi.value)body.aiApiKey=setAi.value;const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;setAi.value='';load();}
+async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';document.getElementById('setAi').placeholder=s.aiKeySet?'•••••• (laisser vide pour garder la clé actuelle)':'sk-ant-...';document.getElementById('aiKeyState').innerHTML=s.aiKeySet?'<span style="color:#1b8a3a;font-weight:700">✅ Une clé est enregistrée</span> — cliquez « Tester la clé » pour vérifier.':'<span style="color:#999;font-weight:700">○ Aucune clé enregistrée</span>';}
+async function saveSettings(){const hadKey=!!setAi.value;const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};if(setAi.value)body.aiApiKey=setAi.value;const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;setAi.value='';await load();if(hadKey&&r.ok)testAi();}
+async function testAi(){var el=document.getElementById('aiKeyState');el.innerHTML='⏳ Test de la clé en cours…';var r=await (await fetch(q('/api/ai/test'))).json();el.innerHTML=r.ok?'<span style="color:#1b8a3a;font-weight:700">✅ Clé valide — IA prête ('+escapeHtml(r.model||'OK')+')</span>':'<span style="color:#b00;font-weight:700">⚠️ '+escapeHtml(r.error)+'</span>';}
 load();
 </script></body></html>`;
 

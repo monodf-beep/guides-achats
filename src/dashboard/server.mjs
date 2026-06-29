@@ -42,11 +42,34 @@ function loadDotEnv(path) {
     if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
 }
+const SETTINGS_FILE = join(ROOT, "data", "settings.json");
+function loadSettings() {
+  if (!existsSync(SETTINGS_FILE)) return {};
+  try { return JSON.parse(readFileSync(SETTINGS_FILE, "utf8")); } catch { return {}; }
+}
+function saveSettings(patch) {
+  const s = { ...loadSettings(), ...patch };
+  mkdirSync(dirname(SETTINGS_FILE), { recursive: true });
+  writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2));
+  return s;
+}
+
+// Config = fichier + .env, puis SURCHARGÉE par les Réglages saisis dans le dashboard
+// (data/settings.json) → l'utilisateur configure tout depuis l'UI, sans toucher au VPS.
 function loadConfig() {
   loadDotEnv(join(ROOT, ".env"));
   const fileConfig = JSON.parse(readFileSync(join(ROOT, "config", "affiliation.json"), "utf8"));
-  return resolveConfig(fileConfig);
+  const cfg = resolveConfig(fileConfig);
+  const s = loadSettings();
+  if (s.amazonTag) { cfg.amazon = cfg.amazon || {}; cfg.amazon.partnerTag = s.amazonTag; }
+  if (s.awinAffiliateId) { cfg.awin = cfg.awin || {}; cfg.awin.affiliateId = s.awinAffiliateId; cfg.awin.enabled = true; }
+  if (s.trackerBase) { cfg.tracker = cfg.tracker || {}; cfg.tracker.base = s.trackerBase; }
+  return cfg;
 }
+
+const slugify = (s) =>
+  String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 function listGuides() {
   if (!existsSync(GUIDES_DIR)) return [];
@@ -170,6 +193,11 @@ const server = createServer((req, res) => {
     return res.end(ARCH_PAGE);
   }
 
+  if (req.method === "GET" && url.pathname === "/editor") {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    return res.end(EDITOR_PAGE);
+  }
+
   // Prévisualisation d'un guide généré
   if (req.method === "GET" && url.pathname.startsWith("/preview/")) {
     const slug = decodeURIComponent(url.pathname.replace("/preview/", ""));
@@ -216,6 +244,50 @@ const server = createServer((req, res) => {
       } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
     })();
     return;
+  }
+
+  if (url.pathname === "/api/settings") {
+    if (req.method === "GET") return json(res, 200, { settings: loadSettings() });
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (c) => (body += c));
+      req.on("end", () => {
+        try {
+          const p = JSON.parse(body || "{}");
+          const clean = {};
+          if (p.amazonTag !== undefined) clean.amazonTag = String(p.amazonTag).trim();
+          if (p.awinAffiliateId !== undefined) clean.awinAffiliateId = String(p.awinAffiliateId).trim();
+          if (p.trackerBase !== undefined) clean.trackerBase = String(p.trackerBase).trim().replace(/\/$/, "");
+          return json(res, 200, { ok: true, settings: saveSettings(clean) });
+        } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+      });
+      return;
+    }
+  }
+
+  if (url.pathname === "/api/guide") {
+    if (req.method === "GET") {
+      try { return json(res, 200, { guide: readGuideBySlug(url.searchParams.get("slug")) }); }
+      catch (e) { return json(res, 404, { error: e.message }); }
+    }
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (c) => (body += c));
+      req.on("end", () => {
+        try {
+          const guide = JSON.parse(body || "{}");
+          guide.slug = slugify(guide.slug || guide.title);
+          if (!guide.slug) throw new Error("Titre manquant");
+          validateGuide(guide);
+          const file = join(GUIDES_DIR, `${guide.slug}.json`);
+          if (!file.startsWith(GUIDES_DIR)) throw new Error("Slug invalide");
+          mkdirSync(GUIDES_DIR, { recursive: true });
+          writeFileSync(file, JSON.stringify(guide, null, 2));
+          return json(res, 200, { ok: true, slug: guide.slug });
+        } catch (e) { return json(res, 400, { ok: false, error: e.message }); }
+      });
+      return;
+    }
   }
 
   if (url.pathname === "/api/seo") {
@@ -281,10 +353,20 @@ pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:aut
 .status span{display:inline-block;margin-right:14px}
 small{color:#666}
 </style></head><body>
-<header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></header>
+<header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><nav><a id="newLink" href="/editor">➕ Nouveau guide</a> <a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></nav></header>
 <main>
   <div class="kpis" id="kpis"></div>
   <div class="card"><h2>État de la configuration</h2><div class="status" id="status"></div></div>
+  <div class="card"><h2>⚙️ Réglages (depuis le dashboard, sans toucher au VPS)</h2>
+    <p style="margin:0 0 10px;color:#666;font-size:.9rem">Ces réglages sont enregistrés sur le serveur et priment sur la config. Aucun fichier à éditer.</p>
+    <div class="row" style="gap:14px">
+      <label>Tag Amazon Partenaires<br><input id="setAmazon" placeholder="culturasab-21"></label>
+      <label>Awin Publisher ID<br><input id="setAwin" placeholder="2961729"></label>
+      <label>URL publique du dashboard (traceur /go)<br><input id="setTracker" placeholder="https://dashboard.culturasabauda.eu" size="34"></label>
+      <button onclick="saveSettings()" style="align-self:flex-end">Enregistrer</button>
+    </div>
+    <p id="setMsg" style="font-size:.85rem;color:var(--ok);margin:.6em 0 0"></p>
+  </div>
   <div class="card"><h2>Guides</h2><table id="guides"><thead><tr><th>Titre</th><th>Catégorie</th><th>Produits</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
   <div class="card"><h2>🔎 Intentions d'achat (SEO)</h2>
     <div class="row"><input id="kw" placeholder="ex. liseuse"><button onclick="seo()">Analyser</button></div>
@@ -331,6 +413,8 @@ const TOKEN = new URLSearchParams(location.search).get('token');
 const q = (p)=> p + (TOKEN ? (p.includes('?')?'&':'?')+'token='+encodeURIComponent(TOKEN) : '');
 async function load(){
   document.getElementById('archLink').href = q('/architecture');
+  document.getElementById('newLink').href = q('/editor');
+  loadSettings();
   const d = await (await fetch(q('/api/overview'))).json();
   const k = d.kpis;
   document.getElementById('kpis').innerHTML = [
@@ -344,8 +428,9 @@ async function load(){
   document.querySelector('#guides tbody').innerHTML = d.guides.map(g=>{
     const st = g.draft?'<span class="badge b-draft">brouillon</span>':(g.generated?'<span class="badge b-ok">généré</span>':'<span class="badge b-no">à générer</span>');
     const wpBtn = (g.generated && window.WP) ? ' <button onclick="pubwp(\\''+g.slug+'\\')">→ WP</button>' : '';
-    const act = g.draft?'<small>compléter d\\'abord</small>':
-      '<button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'')+wpBtn;
+    const edit = '<a href="'+q('/editor?slug='+encodeURIComponent(g.slug))+'"><button class="alt">Modifier</button></a> ';
+    const act = edit + (g.draft? '<small>complétez puis générez</small>' :
+      '<button class="alt" onclick="gen(\\''+g.slug+'\\')">Générer</button> '+(g.generated?'<a href="'+q('/preview/'+g.slug)+'" target="_blank"><button class="alt">Aperçu</button></a>':'')+wpBtn);
     return '<tr><td>'+g.title+'</td><td>'+g.category+'</td><td>'+g.products+'</td><td>'+st+'</td><td>'+act+'</td></tr>';
   }).join('');
 }
@@ -355,6 +440,8 @@ async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en 
 async function seo(){const kw=document.getElementById('kw').value;if(!kw)return;const r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();const o=document.getElementById('seoOut');o.hidden=false;o.textContent=JSON.stringify(r,null,2);}
 async function reco(){const i=document.getElementById('interests').value;const r=await (await fetch(q('/api/recommend?interests='+encodeURIComponent(i)))).json();const o=document.getElementById('recoOut');o.hidden=false;o.textContent=JSON.stringify(r.results,null,2);}
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}
+async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';}
+async function saveSettings(){const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;load();}
 load();
 </script></body></html>`;
 
@@ -479,5 +566,176 @@ code{background:#eef;padding:1px 5px;border-radius:4px;font-size:.85em}
   // Conserve le token dans le lien retour
   var t = new URLSearchParams(location.search).get('token');
   if(t) document.getElementById('back').href = '/?token='+encodeURIComponent(t);
+</script>
+</body></html>`;
+
+const EDITOR_PAGE = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Éditeur de guide — Cultura Sabauda</title>
+<style>
+:root{--accent:#1a4d8f;--line:#e3e3e3;--bg:#f6f7f9;--ok:#1b8a3a}
+*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:#1a1a1a}
+header{background:var(--accent);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+header h1{margin:0;font-size:1.15rem}header a{color:#fff;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.9rem}
+main{max-width:960px;margin:0 auto;padding:24px;display:grid;gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px}
+.card h2{margin:0 0 12px;font-size:1.05rem}
+label{display:block;font-size:.85rem;font-weight:600;margin:8px 0 2px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:inherit}
+textarea{min-height:60px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.pcard{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:14px;margin-bottom:14px;position:relative}
+.pcard .del{position:absolute;top:8px;right:8px;background:#fff;color:#b00;border:1px solid #f0c0c0;border-radius:6px;cursor:pointer;padding:2px 8px}
+button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:600}
+button.alt{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.hint{color:#666;font-size:.82rem;margin:2px 0 0}
+#msg{font-weight:600;margin-top:10px}
+small.cond{color:#888}
+</style></head><body>
+<header><h1>📝 Éditeur de guide</h1><a id="back" href="/">← Tableau de bord</a></header>
+<main>
+  <div class="card"><h2>Le guide</h2>
+    <label>Titre *</label><input id="title" placeholder="Les meilleures liseuses en 2026">
+    <div class="grid3">
+      <div><label>Catégorie *</label><input id="category" placeholder="Livres & lecture"></div>
+      <div><label>Année *</label><input id="year" type="number" value="2026"></div>
+      <div><label>Mise à jour</label><input id="lastUpdated" type="date"></div>
+    </div>
+    <label>Chapô (intro) *</label><textarea id="intro" placeholder="2-3 phrases qui répondent au besoin dès la 1re phrase."></textarea>
+    <label>Auteur</label><input id="author" value="La rédaction Cultura Sabauda">
+  </div>
+
+  <div class="card"><h2>Produits</h2>
+    <p class="hint">Mets une « distinction » à au moins un produit (c'est ce qui crée la sélection en tête de guide).</p>
+    <div id="products"></div>
+    <button class="alt" onclick="addProduct()">+ Ajouter un produit</button>
+  </div>
+
+  <div class="card"><h2>Sections (facultatives)</h2>
+    <label>Critères d'évaluation <small class="cond">(un par ligne)</small></label><textarea id="criteria" placeholder="Autonomie&#10;Confort de lecture&#10;Rapport qualité-prix"></textarea>
+    <label>Comment bien choisir</label><textarea id="buyingGuide"></textarea>
+    <div class="grid2">
+      <div><label>À qui s'adresse ce guide</label><textarea id="audience"></textarea></div>
+      <div><label>Pourquoi nous faire confiance</label><textarea id="trust"></textarea></div>
+    </div>
+    <label>Méthodologie</label><textarea id="methodology"></textarea>
+    <label>FAQ <small class="cond">(une par ligne : Question | Réponse)</small></label><textarea id="faq" placeholder="Inox ou plastique ? | L'inox isole mieux..."></textarea>
+  </div>
+
+  <div class="card">
+    <button onclick="save()">💾 Enregistrer le guide</button>
+    <span id="msg"></span>
+    <p class="hint">Après enregistrement, retourne au tableau de bord pour Générer → Aperçu → Publier.</p>
+  </div>
+</main>
+<script>
+var params=new URLSearchParams(location.search), TOKEN=params.get('token'), SLUG=params.get('slug');
+function q(p){return p+(TOKEN?(p.includes('?')?'&':'?')+'token='+encodeURIComponent(TOKEN):'');}
+if(TOKEN) document.getElementById('back').href='/?token='+encodeURIComponent(TOKEN);
+function slugify(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);}
+var BADGES=['','Meilleur choix global','Meilleur rapport qualité-prix','Premium','Coup de cœur'];
+var PROGRAMS=[['amazon','Amazon (ASIN)'],['local','Marque locale (URL + code)'],['direct','Marchand direct (URL)'],['awin','Awin (URL + Merchant ID)']];
+function addProduct(p){
+  p=p||{}; var a=p.affiliate||{};
+  var badgeOpts=BADGES.map(function(b){return '<option'+(p._badge===b?' selected':'')+'>'+(b||'— aucune —')+'</option>';}).join('');
+  var progOpts=PROGRAMS.map(function(pr){return '<option value="'+pr[0]+'"'+(((a.program||'amazon')===pr[0])?' selected':'')+'>'+pr[1]+'</option>';}).join('');
+  var div=document.createElement('div'); div.className='pcard';
+  div.innerHTML=
+    '<button class="del" onclick="this.parentNode.remove()">✕</button>'+
+    '<div class="grid3"><div><label>Nom *</label><input class="p-name" value="'+esc(p.name)+'"></div>'+
+    '<div><label>Marque</label><input class="p-brand" value="'+esc(p.brand)+'"></div>'+
+    '<div><label>Prix indicatif</label><input class="p-price" value="'+esc(p.price)+'"></div></div>'+
+    '<div class="grid2"><div><label>Distinction</label><select class="p-badge">'+badgeOpts+'</select></div>'+
+    '<div><label>Programme d\\'affiliation</label><select class="p-program" onchange="toggleProg(this)">'+progOpts+'</select></div></div>'+
+    '<div class="grid2"><div class="f-asin"><label>ASIN Amazon</label><input class="p-asin" value="'+esc(a.asin)+'"></div>'+
+    '<div class="f-url"><label>URL produit (marchand)</label><input class="p-url" value="'+esc(a.url)+'"></div></div>'+
+    '<div class="grid3"><div class="f-merchant"><label>Nom du marchand</label><input class="p-merchant" value="'+esc(a.merchant)+'"></div>'+
+    '<div class="f-code"><label>Code promo</label><input class="p-code" value="'+esc(a.code)+'"></div>'+
+    '<div class="f-awinmid"><label>Awin Merchant ID</label><input class="p-awinmid" value="'+esc(a.awinMerchantId)+'"></div></div>'+
+    '<label>Résumé</label><textarea class="p-summary">'+esc(p.summary)+'</textarea>'+
+    '<div class="grid2"><div><label>Points forts (un par ligne)</label><textarea class="p-pros">'+esc((p.pros||[]).join("\\n"))+'</textarea></div>'+
+    '<div><label>Points faibles (un par ligne)</label><textarea class="p-cons">'+esc((p.cons||[]).join("\\n"))+'</textarea></div></div>';
+  document.getElementById('products').appendChild(div);
+  toggleProg(div.querySelector('.p-program'));
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function toggleProg(sel){var c=sel.closest('.pcard'),v=sel.value;
+  c.querySelector('.f-asin').style.display=(v==='amazon')?'':'none';
+  c.querySelector('.f-url').style.display=(v==='amazon')?'none':'';
+  c.querySelector('.f-awinmid').style.display=(v==='awin')?'':'none';
+  c.querySelector('.f-code').style.display=(v==='local')?'':'none';
+}
+function lines(id){return document.getElementById(id).value.split('\\n').map(function(s){return s.trim();}).filter(Boolean);}
+function save(){
+  var products=[],picks=[];
+  document.querySelectorAll('#products .pcard').forEach(function(c,i){
+    var name=c.querySelector('.p-name').value.trim(); if(!name)return;
+    var program=c.querySelector('.p-program').value, id=slugify(name)||('produit-'+(i+1));
+    var aff={program:program};
+    if(program==='amazon'){aff.asin=c.querySelector('.p-asin').value.trim();}
+    else {aff.url=c.querySelector('.p-url').value.trim();}
+    var m=c.querySelector('.p-merchant').value.trim(); if(m)aff.merchant=m;
+    if(program==='awin'){aff.awinMerchantId=c.querySelector('.p-awinmid').value.trim();}
+    if(program==='local'){var cd=c.querySelector('.p-code').value.trim(); if(cd)aff.code=cd;}
+    var prod={id:id,name:name,affiliate:aff};
+    var b=c.querySelector('.p-brand').value.trim(); if(b)prod.brand=b;
+    var pr=c.querySelector('.p-price').value.trim(); if(pr)prod.price=pr;
+    var sm=c.querySelector('.p-summary').value.trim(); if(sm)prod.summary=sm;
+    var pros=c.querySelector('.p-pros').value.split('\\n').map(function(s){return s.trim();}).filter(Boolean); if(pros.length)prod.pros=pros;
+    var cons=c.querySelector('.p-cons').value.split('\\n').map(function(s){return s.trim();}).filter(Boolean); if(cons.length)prod.cons=cons;
+    products.push(prod);
+    var badge=c.querySelector('.p-badge').value; if(badge && badge!=='— aucune —')picks.push({badge:badge,productRef:id});
+  });
+  if(!products.length){return msg('Ajoute au moins un produit.',true);}
+  if(!picks.length){return msg('Mets une distinction à au moins un produit.',true);}
+  var faq=lines('faq').map(function(l){var i=l.indexOf('|');return i<0?null:{q:l.slice(0,i).trim(),a:l.slice(i+1).trim()};}).filter(Boolean);
+  var g={
+    slug:slugify(document.getElementById('title').value),
+    title:document.getElementById('title').value.trim(),
+    category:document.getElementById('category').value.trim(),
+    year:parseInt(document.getElementById('year').value,10)||2026,
+    lang:'fr',
+    lastUpdated:document.getElementById('lastUpdated').value||undefined,
+    author:document.getElementById('author').value.trim()||undefined,
+    intro:document.getElementById('intro').value.trim(),
+    methodology:document.getElementById('methodology').value.trim()||undefined,
+    criteria:lines('criteria'),
+    buyingGuide:document.getElementById('buyingGuide').value.trim()||undefined,
+    audience:document.getElementById('audience').value.trim()||undefined,
+    trust:document.getElementById('trust').value.trim()||undefined,
+    picks:picks, products:products, faq:faq
+  };
+  fetch(q('/api/guide'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(g)})
+   .then(function(r){return r.json();}).then(function(r){
+     if(r.ok){msg('✅ Guide enregistré ('+r.slug+'). Retourne au tableau de bord pour le générer.',false);}
+     else{msg('Erreur : '+r.error,true);}
+   });
+}
+function msg(t,err){var m=document.getElementById('msg');m.textContent=t;m.style.color=err?'#b00':'#1b8a3a';}
+// Édition d'un guide existant
+if(SLUG){
+  fetch(q('/api/guide?slug='+encodeURIComponent(SLUG))).then(function(r){return r.json();}).then(function(d){
+    var g=d.guide; if(!g)return addProduct();
+    document.getElementById('title').value=g.title||'';
+    document.getElementById('category').value=g.category||'';
+    document.getElementById('year').value=g.year||2026;
+    document.getElementById('lastUpdated').value=g.lastUpdated||'';
+    document.getElementById('author').value=g.author||'La rédaction Cultura Sabauda';
+    document.getElementById('intro').value=g.intro||'';
+    document.getElementById('methodology').value=g.methodology||'';
+    document.getElementById('criteria').value=(g.criteria||[]).join('\\n');
+    document.getElementById('buyingGuide').value=g.buyingGuide||'';
+    document.getElementById('audience').value=g.audience||'';
+    document.getElementById('trust').value=g.trust||'';
+    document.getElementById('faq').value=(g.faq||[]).map(function(f){return f.q+' | '+f.a;}).join('\\n');
+    var badgeByRef={}; (g.picks||[]).forEach(function(p){badgeByRef[p.productRef]=p.badge;});
+    (g.products||[]).forEach(function(p){p._badge=badgeByRef[p.id]||''; addProduct(p);});
+    if(!(g.products||[]).length)addProduct();
+  });
+} else {
+  document.getElementById('lastUpdated').valueAsDate=new Date();
+  addProduct();
+}
 </script>
 </body></html>`;

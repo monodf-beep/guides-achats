@@ -352,22 +352,41 @@ input{padding:7px 10px;border:1px solid var(--line);border-radius:6px}
 pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:.82rem;max-height:280px}
 .status span{display:inline-block;margin-right:14px}
 small{color:#666}
+.lead{color:#333;margin:0 0 12px}
+.help{color:#666;font-size:.82rem;margin:3px 0 0}
+h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
+.setrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:12px}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:10px 0}
+.flow .step{flex:1;min-width:120px;background:#f4f7fb;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:.85rem}
+.flow .step b{display:block;margin-bottom:2px}
+.flow .arrow{display:flex;align-items:center;color:#999;font-size:1.3rem}
+.owe{background:#eaf6ee;border:1px solid #bfe3cc;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:.9rem}
 </style></head><body>
 <header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><nav><a id="newLink" href="/editor">➕ Nouveau guide</a> <a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></nav></header>
 <main>
   <div class="kpis" id="kpis"></div>
   <div class="card"><h2>État de la configuration</h2><div class="status" id="status"></div></div>
-  <div class="card"><h2>⚙️ Réglages (depuis le dashboard, sans toucher au VPS)</h2>
-    <p style="margin:0 0 10px;color:#666;font-size:.9rem">Ces réglages sont enregistrés sur le serveur et priment sur la config. Aucun fichier à éditer.</p>
-    <div class="row" style="gap:14px">
-      <label>Tag Amazon Partenaires<br><input id="setAmazon" placeholder="culturasab-21"></label>
-      <label>Awin Publisher ID<br><input id="setAwin" placeholder="2961729"></label>
-      <label>URL publique du dashboard (traceur /go)<br><input id="setTracker" placeholder="https://dashboard.culturasabauda.eu" size="34"></label>
-      <button onclick="saveSettings()" style="align-self:flex-end">Enregistrer</button>
+  <div class="card"><h2>⚙️ Réglages — vos identifiants d'affiliation</h2>
+    <p class="lead">À quoi ça sert : ces identifiants permettent à l'outil de transformer
+    automatiquement les liens de vos guides en liens d'affiliation, pour que les achats vous
+    rapportent une commission. <strong>À remplir une seule fois</strong>, puis « Enregistrer ».</p>
+    <div class="setrow">
+      <div><label>Identifiant Amazon Partenaires</label><input id="setAmazon" placeholder="culturasab-21">
+        <p class="help">Votre « tag » obtenu sur partenaires.amazon.fr. Sans lui, les liens Amazon ne rapportent rien.</p></div>
+      <div><label>Identifiant Awin</label><input id="setAwin" placeholder="2961729">
+        <p class="help">Votre numéro d'éditeur Awin (pour Fnac, Decathlon, Cultura…). Facultatif au début.</p></div>
+      <div><label>Adresse de ce tableau de bord</label><input id="setTracker" placeholder="https://dashboard.culturasabauda.eu">
+        <p class="help">Sert à compter les clics vers vos partenaires locaux. Recopiez simplement l'adresse affichée dans votre navigateur.</p></div>
     </div>
-    <p id="setMsg" style="font-size:.85rem;color:var(--ok);margin:.6em 0 0"></p>
+    <button onclick="saveSettings()">Enregistrer</button>
+    <span id="setMsg" style="margin-left:12px;font-weight:600"></span>
   </div>
-  <div class="card"><h2>Guides</h2><table id="guides"><thead><tr><th>Titre</th><th>Catégorie</th><th>Produits</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
+  <div class="card"><h2>Vos guides d'achat</h2>
+    <p class="lead">Un « guide » est un comparatif de produits que vous recommandez (ex. « Les meilleures liseuses »).
+    Cliquez <strong>« ➕ Nouveau guide »</strong> (en haut) pour en créer un, <strong>« Modifier »</strong> pour
+    le changer, <strong>« Générer »</strong> pour fabriquer la page, <strong>« Aperçu »</strong> pour la voir,
+    puis <strong>« → WP »</strong> pour la publier sur le site.</p>
+    <table id="guides"><thead><tr><th>Titre</th><th>Catégorie</th><th>Produits</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
   <div class="card"><h2>🔎 Intentions d'achat (SEO)</h2>
     <div class="row"><input id="kw" placeholder="ex. liseuse"><button onclick="seo()">Analyser</button></div>
     <pre id="seoOut" hidden></pre></div>
@@ -378,34 +397,34 @@ small{color:#666}
     <div class="row"><input id="rMonth" placeholder="2026-06" size="8"><input id="rProg" placeholder="Amazon"><input id="rAmt" placeholder="0.00" size="6"><button onclick="addRev()">Ajouter</button></div>
     <pre id="revOut" hidden></pre></div>
 
-  <div class="card"><h2>🏪 Affiliation des marques locales (hors plateformes)</h2>
-    <details><summary style="cursor:pointer;font-weight:600">Comment faire — méthode A+B (clique pour déplier)</summary>
-    <div style="font-size:.93rem;line-height:1.55;margin-top:10px">
-      <p>Pour les marques <strong>pas sur Amazon/Awin</strong>, on combine deux méthodes :</p>
-      <p><strong>A. Code promo dédié</strong> — la marque te crée un code unique (ex. <code>CULTURA10</code>).
-      Chaque vente avec ce code = ta commission. Aucune technique requise ; la marque te reporte les ventes.
-      Bonus : la réduction améliore la conversion.</p>
-      <p><strong>B. Redirection traçante</strong> — tes boutons passent par <code>/go</code> (ce serveur) qui
-      <strong>compte le clic</strong> puis redirige vers la boutique. Tu vois le volume de clics (KPI
-      « Clics affiliés » ci-dessus), même si la marque n'a aucun outil.</p>
-      <p><strong>En pratique : A attribue les ventes, B donne les clics.</strong> Tu réconcilies, puis tu
-      saisis la commission dans « Suivi des revenus ».</p>
-      <p><strong>Mise en place :</strong></p>
-      <ol style="margin:4px 0 0">
-        <li>Accord avec la marque : taux de commission + code promo + paiement (facture mensuelle).</li>
-        <li>Dans le <code>.env</code> du VPS : <code>TRACKER_BASE_URL=https://&lt;ce-dashboard&gt;</code> (active la redirection /go).</li>
-        <li>Dans un guide, déclare le produit ainsi :</li>
-      </ol>
-      <pre style="background:#0f172a;color:#e2e8f0;padding:10px;border-radius:8px;font-size:.8rem;overflow:auto">"affiliate": {
-  "program": "local",
-  "url": "https://atelier-sabaudo.fr/produit",
-  "merchant": "Atelier Sabaudo",
-  "code": "CULTURA10"
-}</pre>
-      <p style="margin:8px 0 0;color:#666">→ bouton « Acheter sur Atelier Sabaudo » + encadré « 🎟️ Code partenaire : CULTURA10 ».
-      Sécurité : renseigne <code>tracker.allowedHosts</code> (domaines partenaires) dans
-      <code>config/affiliation.json</code>. Détails : <code>docs/11-affiliation-locale.md</code>.</p>
-    </div></details>
+  <div class="card"><h2>🏪 Gagner des commissions avec des marques locales</h2>
+    <p class="lead">Beaucoup de boutiques et d'artisans ne sont pas sur Amazon. Vous pouvez quand même
+    toucher une commission en les recommandant. Voici comment, étape par étape.</p>
+
+    <h3 class="mini">1. Se mettre d'accord avec la marque</h3>
+    <p>Un simple accord par e-mail suffit : un <strong>pourcentage de commission</strong> (ex. 10 %) et un
+    <strong>code promo à votre nom</strong> (ex. <strong>CULTURA10</strong>). Le code sert à reconnaître les
+    ventes qui viennent de vous.</p>
+
+    <h3 class="mini">2. L'ajouter dans un guide</h3>
+    <p>Dans « ➕ Nouveau guide », pour le produit, choisissez le programme <strong>« Marque locale »</strong>,
+    collez l'adresse (le lien) de la page du produit chez la marque, et indiquez le code promo. C'est tout :
+    l'outil crée le bouton d'achat et affiche le code au lecteur.</p>
+
+    <h3 class="mini">3. Comment vous êtes payé</h3>
+    <div class="flow">
+      <div class="step"><b>Vous publiez</b>le guide sur le site</div><div class="arrow">→</div>
+      <div class="step"><b>Le lecteur clique</b>« Acheter » et/ou note le code promo</div><div class="arrow">→</div>
+      <div class="step"><b>Il achète</b>directement chez la marque</div><div class="arrow">→</div>
+      <div class="step"><b>La marque compte la vente</b>grâce à votre code</div><div class="arrow">→</div>
+      <div class="step"><b>Fin de mois</b>la marque vous verse la commission</div><div class="arrow">→</div>
+      <div class="step"><b>Vous notez</b>le montant dans « Suivi des revenus »</div>
+    </div>
+    <div class="owe"><strong>Ce que la marque vous doit</strong> = votre pourcentage × le total des ventes
+    réalisées avec votre code (ou via vos liens). Exemple : 10 % sur 1 200 € de ventes = <strong>120 €</strong>.
+    Vous lui envoyez une facture en fin de mois.</div>
+    <p class="help">Le compteur « Clics affiliés » (tout en haut) vous indique combien de personnes ont cliqué
+    vers chaque marque — utile pour suivre l'intérêt, même avant les premières ventes.</p>
   </div>
 </main>
 <script>
@@ -595,7 +614,15 @@ small.cond{color:#888}
 </style></head><body>
 <header><h1>📝 Éditeur de guide</h1><a id="back" href="/">← Tableau de bord</a></header>
 <main>
-  <div class="card"><h2>Le guide</h2>
+  <div class="card" style="background:#eef4fb;border-color:#cfe0f3">
+    <h2>À quoi sert cette page</h2>
+    <p style="margin:0">Créez ou modifiez un <strong>guide d'achat</strong> : un comparatif de produits que vous
+    recommandez. En 4 étapes : <strong>1)</strong> le titre et l'intro, <strong>2)</strong> vos produits avec
+    leur lien d'affiliation, <strong>3)</strong> une « distinction » sur vos préférés (Meilleur choix…),
+    <strong>4)</strong> « Enregistrer ». Ensuite, retournez au tableau de bord pour le générer et le publier.
+    Les champs avec <strong>*</strong> sont obligatoires.</p>
+  </div>
+  <div class="card"><h2>1. Le guide</h2>
     <label>Titre *</label><input id="title" placeholder="Les meilleures liseuses en 2026">
     <div class="grid3">
       <div><label>Catégorie *</label><input id="category" placeholder="Livres & lecture"></div>
@@ -606,13 +633,13 @@ small.cond{color:#888}
     <label>Auteur</label><input id="author" value="La rédaction Cultura Sabauda">
   </div>
 
-  <div class="card"><h2>Produits</h2>
-    <p class="hint">Mets une « distinction » à au moins un produit (c'est ce qui crée la sélection en tête de guide).</p>
+  <div class="card"><h2>2. Produits</h2>
+    <p class="hint">Donnez une « distinction » à au moins un produit (Meilleur choix, etc.) : c'est ce qui crée la sélection en tête de guide.</p>
     <div id="products"></div>
     <button class="alt" onclick="addProduct()">+ Ajouter un produit</button>
   </div>
 
-  <div class="card"><h2>Sections (facultatives)</h2>
+  <div class="card"><h2>3. Sections (facultatives)</h2>
     <label>Critères d'évaluation <small class="cond">(un par ligne)</small></label><textarea id="criteria" placeholder="Autonomie&#10;Confort de lecture&#10;Rapport qualité-prix"></textarea>
     <label>Comment bien choisir</label><textarea id="buyingGuide"></textarea>
     <div class="grid2">

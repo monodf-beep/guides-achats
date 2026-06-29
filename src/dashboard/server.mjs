@@ -376,6 +376,9 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
 .stepcard button,.stepcard a button{width:100%}
 .stepcard .state{font-size:.78rem;font-weight:700}
 .muted button{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.chip{display:inline-block;background:#eef2f8;border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin:3px 4px 0 0;font-size:.84rem}
+.reslist li{margin:6px 0}
+.reslist button{padding:3px 9px;font-size:.8rem;margin-left:6px}
 </style></head><body>
 <header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><nav><a id="newLink" href="/editor">➕ Nouveau guide</a> <a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></nav></header>
 <main>
@@ -406,11 +409,13 @@ h3.mini{font-size:.95rem;margin:16px 0 4px;color:var(--accent)}
   <details class="card"><summary style="cursor:pointer;font-weight:700;font-size:1.02rem">🛠️ Outils avancés (facultatif) — SEO &amp; recommandation</summary>
     <p class="help" style="margin:8px 0 0">Optionnel. Pour trouver des idées de sujets (SEO) et tester les recommandations par profil. Vous pouvez ignorer au début.</p>
     <div style="margin-top:14px"><h3 class="mini">🔎 Trouver des idées de sujets (SEO)</h3>
-      <div class="row"><input id="kw" placeholder="ex. liseuse"><button onclick="seo()">Analyser</button></div>
-      <pre id="seoOut" hidden></pre></div>
+      <p class="help" style="margin:0 0 6px">Tapez un produit : l'outil propose des titres de guide (cliquez « Créer ce guide ») et les mots-clés que les gens tapent sur Google (à réutiliser dans votre texte).</p>
+      <div class="row"><input id="kw" placeholder="ex. ballon de foot"><button onclick="seo()">Trouver des idées</button></div>
+      <div id="seoOut" hidden style="margin-top:12px"></div></div>
     <div style="margin-top:14px"><h3 class="mini">🎯 Recommandation par profil</h3>
+      <p class="help" style="margin:0 0 6px">Entrez des centres d'intérêt : l'outil classe vos guides existants par pertinence (utile pour « Nos guides pour vous »).</p>
       <div class="row"><input id="interests" placeholder="ex. Livres & lecture, Maison" style="flex:1"><button onclick="reco()">Recommander</button></div>
-      <pre id="recoOut" hidden></pre></div>
+      <div id="recoOut" hidden style="margin-top:12px"></div></div>
   </details>
   <div class="card"><h2>💶 Suivi des revenus (manuel)</h2>
     <div class="row"><input id="rMonth" placeholder="2026-06" size="8"><input id="rProg" placeholder="Amazon"><input id="rAmt" placeholder="0.00" size="6"><button onclick="addRev()">Ajouter</button></div>
@@ -500,8 +505,23 @@ function renderParcours(d){
 }
 async function gen(slug){const r=await (await fetch(q('/api/generate?slug='+encodeURIComponent(slug)),{method:'POST'})).json();alert(r.ok?'Généré : '+r.slug+' ('+r.products+' produits)':'Erreur : '+r.error);load();}
 async function pubwp(slug){if(!confirm('Publier « '+slug+' » sur WordPress en BROUILLON ?'))return;const r=await (await fetch(q('/api/publish-wp?slug='+encodeURIComponent(slug)),{method:'POST'})).json();if(r.ok){if(confirm((r.created?'Brouillon créé':'Article mis à jour')+' sur WP (statut '+r.status+').\\nOuvrir l\\'article ?'))window.open(r.link,'_blank');}else alert('Erreur : '+r.error);}
-async function seo(){const kw=document.getElementById('kw').value;if(!kw)return;const r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();const o=document.getElementById('seoOut');o.hidden=false;o.textContent=JSON.stringify(r,null,2);}
-async function reco(){const i=document.getElementById('interests').value;const r=await (await fetch(q('/api/recommend?interests='+encodeURIComponent(i)))).json();const o=document.getElementById('recoOut');o.hidden=false;o.textContent=JSON.stringify(r.results,null,2);}
+function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function seo(){
+  var kw=document.getElementById('kw').value.trim(); if(!kw)return;
+  var r=await (await fetch(q('/api/seo?kw='+encodeURIComponent(kw)))).json();
+  var h='<h3 class="mini">Titres de guide suggérés</h3><ul class="reslist">';
+  (r.titles||[]).forEach(function(t){h+='<li>'+escapeHtml(t)+' <a href="'+q('/editor?title='+encodeURIComponent(t))+'"><button class="alt">Créer ce guide</button></a></li>';});
+  h+='</ul><h3 class="mini">Mots-clés que les gens recherchent</h3>';
+  Object.keys(r.matrix||{}).forEach(function(k){var b=r.matrix[k];h+='<p style="margin:8px 0 2px"><strong>'+escapeHtml(b.label)+'</strong></p><div>'+(b.queries||[]).map(function(qy){return '<span class="chip">'+escapeHtml(qy)+'</span>';}).join('')+'</div>';});
+  var o=document.getElementById('seoOut');o.hidden=false;o.innerHTML=h;
+}
+async function reco(){
+  var i=document.getElementById('interests').value;
+  var r=await (await fetch(q('/api/recommend?interests='+encodeURIComponent(i)))).json();
+  var res=r.results||[];
+  var h=res.length?('<ol class="reslist">'+res.map(function(x){return '<li><strong>'+escapeHtml(x.title)+'</strong> <small>('+escapeHtml(x.category)+')</small></li>';}).join('')+'</ol>'):'<p class="help">Aucun guide ne correspond pour l\\'instant — créez-en d\\'abord.</p>';
+  var o=document.getElementById('recoOut');o.hidden=false;o.innerHTML=h;
+}
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}
 async function loadSettings(){const s=(await (await fetch(q('/api/settings'))).json()).settings||{};document.getElementById('setAmazon').value=s.amazonTag||'';document.getElementById('setAwin').value=s.awinAffiliateId||'';document.getElementById('setTracker').value=s.trackerBase||'';}
 async function saveSettings(){const body={amazonTag:setAmazon.value,awinAffiliateId:setAwin.value,trackerBase:setTracker.value};const r=await (await fetch(q('/api/settings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();document.getElementById('setMsg').textContent=r.ok?'✅ Réglages enregistrés.':'Erreur : '+r.error;load();}
@@ -806,6 +826,7 @@ if(SLUG){
   });
 } else {
   document.getElementById('lastUpdated').valueAsDate=new Date();
+  var preT=params.get('title'); if(preT) document.getElementById('title').value=preT;
   addProduct();
 }
 </script>

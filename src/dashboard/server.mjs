@@ -295,6 +295,36 @@ small{color:#666}
   <div class="card"><h2>💶 Suivi des revenus (manuel)</h2>
     <div class="row"><input id="rMonth" placeholder="2026-06" size="8"><input id="rProg" placeholder="Amazon"><input id="rAmt" placeholder="0.00" size="6"><button onclick="addRev()">Ajouter</button></div>
     <pre id="revOut" hidden></pre></div>
+
+  <div class="card"><h2>🏪 Affiliation des marques locales (hors plateformes)</h2>
+    <details><summary style="cursor:pointer;font-weight:600">Comment faire — méthode A+B (clique pour déplier)</summary>
+    <div style="font-size:.93rem;line-height:1.55;margin-top:10px">
+      <p>Pour les marques <strong>pas sur Amazon/Awin</strong>, on combine deux méthodes :</p>
+      <p><strong>A. Code promo dédié</strong> — la marque te crée un code unique (ex. <code>CULTURA10</code>).
+      Chaque vente avec ce code = ta commission. Aucune technique requise ; la marque te reporte les ventes.
+      Bonus : la réduction améliore la conversion.</p>
+      <p><strong>B. Redirection traçante</strong> — tes boutons passent par <code>/go</code> (ce serveur) qui
+      <strong>compte le clic</strong> puis redirige vers la boutique. Tu vois le volume de clics (KPI
+      « Clics affiliés » ci-dessus), même si la marque n'a aucun outil.</p>
+      <p><strong>En pratique : A attribue les ventes, B donne les clics.</strong> Tu réconcilies, puis tu
+      saisis la commission dans « Suivi des revenus ».</p>
+      <p><strong>Mise en place :</strong></p>
+      <ol style="margin:4px 0 0">
+        <li>Accord avec la marque : taux de commission + code promo + paiement (facture mensuelle).</li>
+        <li>Dans le <code>.env</code> du VPS : <code>TRACKER_BASE_URL=https://&lt;ce-dashboard&gt;</code> (active la redirection /go).</li>
+        <li>Dans un guide, déclare le produit ainsi :</li>
+      </ol>
+      <pre style="background:#0f172a;color:#e2e8f0;padding:10px;border-radius:8px;font-size:.8rem;overflow:auto">"affiliate": {
+  "program": "local",
+  "url": "https://atelier-sabaudo.fr/produit",
+  "merchant": "Atelier Sabaudo",
+  "code": "CULTURA10"
+}</pre>
+      <p style="margin:8px 0 0;color:#666">→ bouton « Acheter sur Atelier Sabaudo » + encadré « 🎟️ Code partenaire : CULTURA10 ».
+      Sécurité : renseigne <code>tracker.allowedHosts</code> (domaines partenaires) dans
+      <code>config/affiliation.json</code>. Détails : <code>docs/11-affiliation-locale.md</code>.</p>
+    </div></details>
+  </div>
 </main>
 <script>
 const TOKEN = new URLSearchParams(location.search).get('token');

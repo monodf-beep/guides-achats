@@ -1,0 +1,71 @@
+{
+  "_comment": "EXEMPLE d'affiliation LOCALE (programme 'local' + codes promo). Produits/artisans illustratifs : remplace par de vrais partenaires et leurs URL avant publication.",
+  "slug": "meilleurs-cadeaux-artisanaux-savoie",
+  "title": "Les meilleurs cadeaux artisanaux de Savoie en 2026",
+  "category": "Visite & patrimoine",
+  "year": 2026,
+  "lang": "fr",
+  "lastUpdated": "2026-06-29",
+  "author": "La rédaction Cultura Sabauda",
+  "intro": "Pour offrir un présent ancré dans le terroir sabaudo, rien ne vaut le savoir-faire local. Voici notre sélection de cadeaux artisanaux, des ateliers et producteurs de Savoie, à commander en ligne.",
+  "methodology": "Nous mettons en avant des artisans et producteurs locaux partenaires, choisis pour la qualité de leur travail et l'authenticité de leur démarche. Cultura Sabauda perçoit une commission sur les achats réalisés via nos liens et codes, sans surcoût pour vous.",
+  "criteria": [
+    "Authenticité et savoir-faire local",
+    "Qualité des matériaux / produits",
+    "Rapport qualité-prix",
+    "Adéquation comme cadeau",
+    "Disponibilité à la commande en ligne"
+  ],
+  "picks": [
+    { "badge": "Meilleur choix global", "productRef": "couteau-savoyard" },
+    { "badge": "Meilleur rapport qualité-prix", "productRef": "miel-alpages" },
+    { "badge": "Cadeau premium", "productRef": "coffret-tomme" }
+  ],
+  "products": [
+    {
+      "id": "couteau-savoyard",
+      "name": "Couteau de poche savoyard manche en genévrier",
+      "brand": "Coutellerie des Alpes",
+      "price": "59 €",
+      "image": "https://placehold.co/600x400?text=Couteau+savoyard",
+      "summary": "Un couteau pliant façonné à la main, au manche en bois local. Un objet du quotidien durable et transmissible, emblématique de l'artisanat alpin.",
+      "pros": ["Fabrication artisanale locale", "Acier robuste qui s'aiguise bien", "Bel objet à offrir"],
+      "cons": ["Délai de fabrication en période de fêtes"],
+      "affiliate": { "program": "local", "url": "https://coutellerie-des-alpes.example/couteau-savoyard", "merchant": "Coutellerie des Alpes", "code": "CULTURA10" }
+    },
+    {
+      "id": "miel-alpages",
+      "name": "Miel des alpages bio (pot 500 g)",
+      "brand": "Rucher Sabaudo",
+      "price": "14,90 €",
+      "image": "https://placehold.co/600x400?text=Miel+des+alpages",
+      "summary": "Un miel de montagne récolté en altitude, à la texture crémeuse et au goût floral. Le petit cadeau gourmand et local par excellence.",
+      "pros": ["Production locale et bio", "Excellent rapport qualité-prix", "Idéal en petit présent"],
+      "cons": ["Stock saisonnier limité"],
+      "affiliate": { "program": "local", "url": "https://rucher-sabaudo.example/miel-alpages", "merchant": "Rucher Sabaudo", "code": "CULTURA10" }
+    },
+    {
+      "id": "coffret-tomme",
+      "name": "Coffret tomme de Savoie affinée & accessoires",
+      "brand": "Fromagerie du Val",
+      "price": "75 €",
+      "image": "https://placehold.co/600x400?text=Coffret+tomme",
+      "summary": "Un coffret cadeau premium : tomme de Savoie affinée en cave, planche et couteau à fromage. Le présent gourmand qui fait toujours plaisir.",
+      "pros": ["Affinage soigné", "Présentation cadeau soignée", "Produits du terroir"],
+      "cons": ["Prix plus élevé", "Livraison réfrigérée à anticiper"],
+      "affiliate": { "program": "local", "url": "https://fromagerie-du-val.example/coffret-tomme", "merchant": "Fromagerie du Val", "code": "CULTURA10" }
+    }
+  ],
+  "buyingGuide": "Pour un petit budget, un produit gourmand local (miel, confiture) fait un cadeau sûr. Pour marquer le coup, privilégiez un objet artisanal durable (coutellerie, poterie). Pour un cadeau d'entreprise ou de fête, un coffret premium combine plusieurs produits du terroir. Vérifiez toujours les délais de fabrication et de livraison en période de fêtes.",
+  "audience": "Ce guide s'adresse à ceux qui veulent offrir un cadeau de Savoie authentique tout en soutenant les artisans et producteurs locaux, plutôt que des articles standardisés des grandes plateformes.",
+  "trust": "Cultura Sabauda met en avant des partenaires locaux sélectionnés pour leur savoir-faire. Notre rémunération provient de commissions d'affiliation, sans incidence sur le choix des artisans présentés ni surcoût pour vous.",
+  "faq": [
+    { "q": "Les codes promo sont-ils cumulables ?", "a": "En général non : le code partenaire Cultura Sabauda s'applique seul. Reportez-vous aux conditions de chaque artisan." },
+    { "q": "Peut-on commander pour une livraison hors de Savoie ?", "a": "Oui, la plupart des partenaires expédient partout en France ; les produits frais nécessitent une livraison réfrigérée, à anticiper." },
+    { "q": "Soutient-on vraiment les artisans locaux ?", "a": "Oui : les achats vont directement aux artisans partenaires. Cultura Sabauda ne perçoit qu'une commission d'apporteur, sans surcoût pour vous." }
+  ],
+  "relatedGuides": [
+    { "title": "Les meilleures jumelles pour la randonnée culturelle", "url": "/guides-achat/meilleures-jumelles-randonnee" },
+    { "title": "Idées cadeaux culturels à moins de 50 €", "url": "/guides-achat/idees-cadeaux-culturels" }
+  ]
+}

@@ -104,7 +104,7 @@ function addRevenue(entry) {
 function configStatus(config) {
   const tag = config.amazon?.partnerTag || "";
   return {
-    amazonConfigured: !!tag && !/REMPLACER/i.test(tag),
+    amazonConfigured: !!tag && !/REMPLACER|monidentifiant/i.test(tag),
     amazonTag: tag,
     awinEnabled: !!config.awin?.enabled,
     site: config.site?.baseUrl || "",

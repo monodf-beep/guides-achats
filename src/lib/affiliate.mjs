@@ -42,7 +42,7 @@ export function buildAffiliateLink(affiliate, config) {
       const cfg = config.amazon || {};
       if (!affiliate.asin) throw new Error(`Produit Amazon sans 'asin' : ${affiliate.url || ""}`);
       const tag = cfg.partnerTag;
-      if (!tag || /REMPLACER/i.test(tag)) {
+      if (!tag || /REMPLACER|monidentifiant/i.test(tag)) {
         console.warn("⚠️  Tag Amazon Partenaires non configuré (AMAZON_PARTNER_TAG). Lien généré sans commission valide.");
       }
       const marketplace = cfg.marketplace || "amazon.fr";

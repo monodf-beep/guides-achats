@@ -63,6 +63,7 @@ export function renderMarkdown(guide, config) {
       L.push("");
     }
     L.push(`👉 **[Acheter sur ${merchantLabel(p.affiliate)}](${link.href})**`);
+    if (p.affiliate?.code) { L.push(""); L.push(`🎟️ **Code partenaire : ${p.affiliate.code}**`); }
     if (p.price) { L.push(""); L.push(`*Prix indicatif relevé au moment de la publication : ${p.price}.*`); }
     L.push("");
     L.push("---");

@@ -31,6 +31,7 @@ export function renderHtml(guide, config) {
         ${list(p.pros, "pros", "✅")}
         ${list(p.cons, "cons", "⚠️")}
         <a class="cta" href="${esc(link.href)}" rel="${link.rel}" target="_blank">Acheter sur ${esc(merchantLabel(p.affiliate))}</a>
+        ${p.affiliate?.code ? `<p class="coupon">🎟️ Code partenaire : <strong>${esc(p.affiliate.code)}</strong></p>` : ""}
         ${p.price ? `<p class="price-note">Prix indicatif relevé au moment de la publication : ${esc(p.price)}.</p>` : ""}
       </article>`;
     })
@@ -172,6 +173,7 @@ table.picks a{color:var(--accent);font-weight:700;text-decoration:none}
 .pros,.cons{list-style:none;padding:0;font-family:Arial,sans-serif;font-size:.92rem}
 .cta{display:inline-block;margin-top:10px;background:var(--accent);color:#fff;font-family:Arial,sans-serif;font-weight:700;text-decoration:none;padding:11px 22px;border-radius:6px}
 .price-note{color:var(--muted);font-family:Arial,sans-serif;font-size:.8rem;margin:.4em 0 0}
+.coupon{font-family:Arial,sans-serif;font-size:.9rem;margin:.5em 0 0;background:#fff8e6;border:1px dashed #d4a72c;border-radius:6px;padding:6px 10px;display:inline-block}
 details{border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}
 summary{cursor:pointer;font-weight:700}
 .legal{color:var(--muted);font-size:.82rem;font-family:Arial,sans-serif;margin-top:3em;border-top:1px solid var(--line);padding-top:1em}

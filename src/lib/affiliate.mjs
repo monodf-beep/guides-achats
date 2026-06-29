@@ -70,6 +70,22 @@ export function buildAffiliateLink(affiliate, config) {
       return { href: withUtm(affiliate.url, config.utm), rel, program };
     }
 
+    // Partenaire LOCAL (marque hors plateforme). Si un traceur est configuré
+    // (config.tracker.base), le lien passe par /go (compte le clic puis redirige) ;
+    // sinon, lien direct avec UTM. Un éventuel code promo est porté par affiliate.code.
+    case "local": {
+      if (!affiliate.url) throw new Error("Produit local sans 'url'.");
+      const target = withUtm(affiliate.url, config.utm);
+      const base = config.tracker?.base;
+      if (base) {
+        const u = new URL("/go", base);
+        u.searchParams.set("to", target);
+        if (affiliate.merchant) u.searchParams.set("m", affiliate.merchant);
+        return { href: u.toString(), rel, program };
+      }
+      return { href: target, rel, program };
+    }
+
     default:
       throw new Error(`Programme d'affiliation inconnu : '${program}'`);
   }
@@ -82,6 +98,7 @@ export function buildAffiliateLink(affiliate, config) {
 export function merchantLabel(affiliate) {
   if (affiliate?.merchant) return affiliate.merchant;
   if (affiliate?.program === "amazon") return "Amazon";
+  if (affiliate?.program === "local") return "la boutique";
   return "le marchand";
 }
 
@@ -101,6 +118,10 @@ export function resolveConfig(fileConfig, env = process.env) {
   if (env.SITE_BASE_URL) {
     cfg.site = cfg.site || {};
     cfg.site.baseUrl = env.SITE_BASE_URL;
+  }
+  if (env.TRACKER_BASE_URL) {
+    cfg.tracker = cfg.tracker || {};
+    cfg.tracker.base = env.TRACKER_BASE_URL;
   }
   return cfg;
 }

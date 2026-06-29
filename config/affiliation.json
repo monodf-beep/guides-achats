@@ -19,6 +19,11 @@
   "direct": {
     "enabled": true
   },
+  "tracker": {
+    "_comment": "Base publique du traceur de clics (le serveur du tableau de bord) pour les partenaires locaux. Ex. https://dashboard.culturasabauda.eu. Surchargé par TRACKER_BASE_URL. Vide = liens directs sans comptage de clic.",
+    "base": "",
+    "allowedHosts": []
+  },
   "utm": {
     "source": "culturasabauda",
     "medium": "affiliate",

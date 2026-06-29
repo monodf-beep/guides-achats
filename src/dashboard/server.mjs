@@ -31,6 +31,7 @@ const ROOT = resolve(__dirname, "..", "..");
 const GUIDES_DIR = join(ROOT, "data", "guides");
 const OUTPUT_DIR = join(ROOT, "output");
 const REVENUE_FILE = join(ROOT, "data", "revenue.json");
+const CLICKS_FILE = join(ROOT, "data", "clicks.json");
 const PORT = process.env.DASHBOARD_PORT || 8787;
 const TOKEN = process.env.DASHBOARD_TOKEN || "";
 
@@ -90,6 +91,16 @@ function generateGuide(slug, config) {
   return { slug: guide.slug, products: guide.products.length };
 }
 
+function readClicks() {
+  if (!existsSync(CLICKS_FILE)) return [];
+  try { return JSON.parse(readFileSync(CLICKS_FILE, "utf8")); } catch { return []; }
+}
+function logClick(entry) {
+  const data = readClicks();
+  data.push(entry);
+  try { writeFileSync(CLICKS_FILE, JSON.stringify(data, null, 2)); } catch { /* best effort */ }
+}
+
 function readRevenue() {
   if (!existsSync(REVENUE_FILE)) return [];
   try { return JSON.parse(readFileSync(REVENUE_FILE, "utf8")); } catch { return []; }
@@ -127,6 +138,25 @@ const server = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const config = loadConfig();
 
+  // Redirection traçante PUBLIQUE pour les partenaires locaux (pas de token).
+  // Compte le clic puis redirige (302) vers la boutique. Protégé contre l'open-redirect.
+  if (req.method === "GET" && url.pathname === "/go") {
+    const to = url.searchParams.get("to") || "";
+    let dest;
+    try { dest = new URL(to); } catch { return json(res, 400, { error: "Paramètre 'to' invalide" }); }
+    if (dest.protocol !== "http:" && dest.protocol !== "https:") return json(res, 400, { error: "Schéma non autorisé" });
+    const allowed = config.tracker?.allowedHosts || [];
+    if (allowed.length && !allowed.includes(dest.host)) return json(res, 403, { error: "Hôte non autorisé" });
+    logClick({
+      ts: new Date().toISOString(),
+      merchant: url.searchParams.get("m") || "",
+      guide: url.searchParams.get("g") || "",
+      to: dest.toString(),
+    });
+    res.writeHead(302, { Location: dest.toString(), "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+    return res.end();
+  }
+
   if (!authorized(url)) return json(res, 401, { error: "Token requis (?token=...)" });
 
   // Pages
@@ -161,6 +191,7 @@ const server = createServer((req, res) => {
         drafts: guides.filter((g) => g.draft).length,
         products: guides.reduce((n, g) => n + g.products, 0),
         revenueTotal: revenue.reduce((n, r) => n + (r.amount || 0), 0),
+        clicks: readClicks().length,
       },
       guides,
     });
@@ -273,7 +304,7 @@ async function load(){
   const d = await (await fetch(q('/api/overview'))).json();
   const k = d.kpis;
   document.getElementById('kpis').innerHTML = [
-    ['Guides',k.guides],['Publiés',k.published],['Brouillons',k.drafts],['Produits',k.products],['Revenus €',k.revenueTotal.toFixed(2)]
+    ['Guides',k.guides],['Publiés',k.published],['Brouillons',k.drafts],['Produits',k.products],['Clics affiliés',k.clicks],['Revenus €',k.revenueTotal.toFixed(2)]
   ].map(([l,v])=>'<div class="kpi"><b>'+v+'</b>'+l+'</div>').join('');
   const s=d.status; window.WP = s.wpConfigured;
   document.getElementById('status').innerHTML =

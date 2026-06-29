@@ -12,6 +12,7 @@ output/*
 
 # Données opérationnelles locales
 data/revenue.json
+data/clicks.json
 
 # Système
 .DS_Store

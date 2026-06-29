@@ -135,6 +135,11 @@ const server = createServer((req, res) => {
     return res.end(PAGE);
   }
 
+  if (req.method === "GET" && url.pathname === "/architecture") {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    return res.end(ARCH_PAGE);
+  }
+
   // Prévisualisation d'un guide généré
   if (req.method === "GET" && url.pathname.startsWith("/preview/")) {
     const slug = decodeURIComponent(url.pathname.replace("/preview/", ""));
@@ -225,7 +230,8 @@ const PAGE = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
 <style>
 :root{--accent:#1a4d8f;--ok:#1b8a3a;--warn:#b06a00;--line:#e3e3e3;--bg:#f6f7f9}
 *{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:#1a1a1a}
-header{background:var(--accent);color:#fff;padding:16px 24px}header h1{margin:0;font-size:1.25rem}
+header{background:var(--accent);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header h1{margin:0;font-size:1.25rem}
+header a{color:#fff;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:6px;text-decoration:none;font-size:.9rem;font-weight:600}
 main{max-width:1100px;margin:0 auto;padding:24px;display:grid;gap:24px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
@@ -244,7 +250,7 @@ pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:aut
 .status span{display:inline-block;margin-right:14px}
 small{color:#666}
 </style></head><body>
-<header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1></header>
+<header><h1>📊 Guides d'achat — Tableau de bord Cultura Sabauda</h1><a id="archLink" href="/architecture">📐 Architecture &amp; flux</a></header>
 <main>
   <div class="kpis" id="kpis"></div>
   <div class="card"><h2>État de la configuration</h2><div class="status" id="status"></div></div>
@@ -263,6 +269,7 @@ small{color:#666}
 const TOKEN = new URLSearchParams(location.search).get('token');
 const q = (p)=> p + (TOKEN ? (p.includes('?')?'&':'?')+'token='+encodeURIComponent(TOKEN) : '');
 async function load(){
+  document.getElementById('archLink').href = q('/architecture');
   const d = await (await fetch(q('/api/overview'))).json();
   const k = d.kpis;
   document.getElementById('kpis').innerHTML = [
@@ -289,3 +296,127 @@ async function reco(){const i=document.getElementById('interests').value;const r
 async function addRev(){const body={month:rMonth.value,program:rProg.value,amount:rAmt.value};const r=await (await fetch(q('/api/revenue'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();const o=document.getElementById('revOut');o.hidden=false;o.textContent=JSON.stringify(r.revenue,null,2);load();}
 load();
 </script></body></html>`;
+
+const ARCH_PAGE = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture & flux — Guides d'achat Cultura Sabauda</title>
+<style>
+:root{--accent:#1a4d8f;--ai:#7c3aed;--auto:#0f766e;--human:#b45309;--line:#e3e3e3;--bg:#f6f7f9}
+*{box-sizing:border-box}body{font-family:system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:#1a1a1a;line-height:1.55}
+header{background:var(--accent);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:1.2rem}header a{color:#fff;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.9rem}
+main{max-width:1000px;margin:0 auto;padding:24px;display:grid;gap:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.card h2{margin:0 0 6px;font-size:1.1rem}.card p.sub{margin:0 0 14px;color:#666}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tag{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.t-ai{background:#efe7fd;color:var(--ai)}.t-auto{background:#d9f2ee;color:var(--auto)}.t-human{background:#fdecd0;color:var(--human)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+.step{flex:1;min-width:130px;background:#f4f7fb;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:.86rem}
+.step.ai{border-left-color:var(--ai)}.step.human{border-left-color:var(--human)}.step.auto{border-left-color:var(--auto)}
+.step b{display:block;font-size:.92rem;margin-bottom:2px}
+.arrow{display:flex;align-items:center;font-size:1.3rem;color:#999}
+.legend span{display:inline-block;margin-right:16px;font-size:.85rem}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+code{background:#eef;padding:1px 5px;border-radius:4px;font-size:.85em}
+.note{background:#fff8e6;border-left:4px solid var(--human);padding:10px 14px;border-radius:6px;font-size:.9rem}
+</style></head><body>
+<header><h1>📐 Architecture & flux</h1><a id="back" href="/">← Retour au tableau de bord</a></header>
+<main>
+
+  <div class="card">
+    <h2>En une phrase</h2>
+    <p>Une chaîne <strong>majoritairement déterministe</strong> (Node, sans IA) transforme des données
+    de guide en pages publiables et liens affiliés. <strong>Un seul maillon utilise l'IA</strong> :
+    Claude rédige l'éditorial, sous contrôle humain. Il n'y a pas une nuée d'agents — un appel LLM, encadré.</p>
+    <p class="legend">
+      <span><span class="dot" style="background:#0f766e"></span>Automatique (Node, déterministe)</span>
+      <span><span class="dot" style="background:#7c3aed"></span>IA (Claude)</span>
+      <span><span class="dot" style="background:#b45309"></span>Humain (décision / relecture)</span>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Qui fait quoi (composants)</h2>
+    <p class="sub">Chaque brique a une responsabilité unique et un type d'exécution.</p>
+    <table>
+      <thead><tr><th>Composant</th><th>Rôle</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td><code>seo/intent</code></td><td>Mot-clé → matrice d'intentions d'achat + brief SEO</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>ai/draft-guide</code></td><td>Rédige l'éditorial d'un guide (intro, critères, forts/faibles, FAQ…)</td><td><span class="tag t-ai">IA — Claude</span></td></tr>
+        <tr><td><code>lib/schema</code></td><td>Valide les données du guide (champs, références) avant tout rendu</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>lib/affiliate</code></td><td>Construit les liens affiliés trackés (Amazon / Awin / direct)</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>generate</code> + <code>lib/render-*</code></td><td>Guide JSON → page Markdown + HTML (SEO, Schema.org)</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>seo/recommend</code></td><td>Profil visiteur → guides classés par affinité</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>publish-wordpress</code></td><td>Publie l'article sur WordPress (API REST)</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td><code>dashboard</code></td><td>Pilote tout : génère, prévisualise, publie, suit les revenus</td><td><span class="tag t-auto">Auto</span></td></tr>
+        <tr><td>Rédacteur / relecteur</td><td>Fournit les ASIN & prix vérifiés, valide qualité + conformité</td><td><span class="tag t-human">Humain</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Le modèle d'IA</h2>
+    <p class="sub">Un seul appel LLM dans toute la chaîne.</p>
+    <p><strong>Claude <code>claude-opus-4-8</code></strong> (adaptive thinking, sorties structurées
+    validées par schéma) — utilisé par <code>ai/draft-guide</code> pour rédiger l'éditorial.</p>
+    <div class="note"><strong>Garde-fous de conformité :</strong>
+      <ul style="margin:6px 0 0">
+        <li>Claude rédige <strong>uniquement le texte</strong> ; il ne génère <strong>jamais</strong> les ASIN, URL marchandes ni les prix (fournis et vérifiés par un humain).</li>
+        <li>Sa sortie est un <strong>brouillon</strong> (<code>*.draft.json</code>) à relire avant publication.</li>
+        <li>Schéma JSON strict : pas de champ prix/asin côté IA → pas de lien ou de prix halluciné.</li>
+      </ul>
+    </div>
+    <p style="margin-top:12px">Tous les autres composants sont <strong>déterministes</strong> (Node natif, aucune IA) : prévisibles, testables, gratuits.</p>
+  </div>
+
+  <div class="card">
+    <h2>Flux 1 — Créer & publier un guide</h2>
+    <div class="flow">
+      <div class="step human"><b>1. Idée</b>sujet à couvrir</div><div class="arrow">→</div>
+      <div class="step auto"><b>2. SEO</b>intentions + brief (<code>intent</code>)</div><div class="arrow">→</div>
+      <div class="step human"><b>3. Squelette</b>produits + ASIN/prix vérifiés</div><div class="arrow">→</div>
+      <div class="step ai"><b>4. Rédaction</b>brouillon par Claude (ou manuel)</div><div class="arrow">→</div>
+      <div class="step human"><b>5. Relecture</b>qualité + conformité</div><div class="arrow">→</div>
+      <div class="step auto"><b>6. Génération</b>MD + HTML (<code>generate</code>)</div><div class="arrow">→</div>
+      <div class="step auto"><b>7. Aperçu</b>dans le dashboard</div><div class="arrow">→</div>
+      <div class="step auto"><b>8. Publication</b>→ WordPress (brouillon)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Flux 2 — Du clic à la commission (revenu)</h2>
+    <div class="flow">
+      <div class="step"><b>Lecteur</b>lit le guide</div><div class="arrow">→</div>
+      <div class="step auto"><b>Bouton</b>« Acheter sur [Marchand] » = lien tracké (tag affilié)</div><div class="arrow">→</div>
+      <div class="step"><b>Marchand</b>Amazon / Fnac…</div><div class="arrow">→</div>
+      <div class="step"><b>Achat</b>attribué via le tag</div><div class="arrow">→</div>
+      <div class="step auto"><b>Commission</b>versée par le marchand</div><div class="arrow">→</div>
+      <div class="step human"><b>Suivi</b>saisi dans le dashboard</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Flux 3 — Personnalisation (pousser les bons guides)</h2>
+    <div class="flow">
+      <div class="step human"><b>Visiteur</b>déclare ses centres d'intérêt</div><div class="arrow">→</div>
+      <div class="step auto"><b>Recommandation</b>affinité de catégorie (<code>recommend</code>)</div><div class="arrow">→</div>
+      <div class="step auto"><b>Affichage</b>« Nos guides pour vous »</div>
+    </div>
+    <p style="margin-top:10px;font-size:.88rem;color:#666">Règle-à-règle pour l'instant (sans donnée sensible). Le comportemental/prédictif viendra avec le trafic — sous consentement (RGPD).</p>
+  </div>
+
+  <div class="card">
+    <h2>Pour aller plus loin</h2>
+    <p>Documentation détaillée dans le dépôt : <code>docs/09-ia-claude.md</code> (IA),
+    <code>docs/08-seo-et-personnalisation.md</code> (SEO &amp; perso),
+    <code>docs/ETAT-DU-PROJET.md</code> (avancement).</p>
+  </div>
+
+</main>
+<script>
+  // Conserve le token dans le lien retour
+  var t = new URLSearchParams(location.search).get('token');
+  if(t) document.getElementById('back').href = '/?token='+encodeURIComponent(t);
+</script>
+</body></html>`;
